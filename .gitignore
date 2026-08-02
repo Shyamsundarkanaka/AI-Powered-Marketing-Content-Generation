@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment and secrets
+.env
+
+# Generated runtime output
+output/videos/*
+output/scripts/*
+output/json/*
+output/voice/*
+logs/*
+
+# Keep empty generated directories in version control
+!output/videos/.gitkeep
+!output/scripts/.gitkeep
+!output/json/.gitkeep
+!output/voice/.gitkeep
+!logs/.gitkeep
+
+# Local tooling
+.pytest_cache/
+.mypy_cache/
+.playwright/
+
