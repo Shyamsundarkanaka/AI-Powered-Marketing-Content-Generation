@@ -1,10 +1,10 @@
 # AI-Powered Marketing Content Generation System
 
-Production-style marketing-content generation system for Infinity Art Studio.
+Production-style marketing-content generation system for Radboards (https://radboards.in/).
 
 ## Current progress
 
-Step 1 is complete: the project foundation, architecture-defined folder layout, configuration template, dependency manifest, and Git repository are in place. No application logic has been added.
+Step 7 is complete: product understanding and marketing-script generation are implemented with Gemini structured-output adapters and local tests. The next module is caption generation.
 
 ## Setup
 
