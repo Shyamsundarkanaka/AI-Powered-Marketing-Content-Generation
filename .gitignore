@@ -1,30 +1,8 @@
-# Python
-__pycache__/
-*.py[cod]
-.venv/
 venv/
-
-# Environment and secrets
+__pycache__/
+*.pyc
 .env
-
-# Generated runtime output
-output/videos/*
-output/scripts/*
-output/json/*
-output/voice/*
-output/images/*
-logs/*
-
-# Keep empty generated directories in version control
-!output/videos/.gitkeep
-!output/scripts/.gitkeep
-!output/json/.gitkeep
-!output/voice/.gitkeep
-!output/images/.gitkeep
-!logs/.gitkeep
-
-# Local tooling
-.pytest_cache/
-.mypy_cache/
-.playwright/
-
+data/
+output/
+logs/
+.streamlit/secrets.toml

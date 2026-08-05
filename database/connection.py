@@ -1,51 +1,44 @@
-"""Database connection and schema initialization utilities."""
-
+"""SQLite connection handling and schema initialization."""
 from __future__ import annotations
 
+import logging
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
+
+from config.settings import DATABASE_PATH
+
+logger = logging.getLogger(__name__)
+
+SCHEMA_PATH = Path(__file__).resolve().parent / "schema.sql"
 
 
-PRODUCTS_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS products (
-    product_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    url TEXT NOT NULL UNIQUE,
-    product_name TEXT,
-    category TEXT,
-    status TEXT NOT NULL DEFAULT 'pending',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_processed_at TEXT,
-    drive_link TEXT,
-    approval_status TEXT NOT NULL DEFAULT 'not_reviewed'
-)
-"""
+def get_connection() -> sqlite3.Connection:
+    """Open a new SQLite connection with row access by column name."""
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
 
 
-def get_connection(database_path: str | Path) -> sqlite3.Connection:
-    """Return a configured SQLite connection for ``database_path``.
-
-    The parent directory is created when it does not yet exist. Foreign-key
-    checks are enabled on every connection because SQLite disables them by
-    default. Callers are responsible for closing the returned connection.
-    """
-    path = Path(database_path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    connection = sqlite3.connect(path)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys = ON")
-    return connection
-
-
-def initialize_database(database_path: str | Path) -> None:
-    """Create the application's database schema when it is missing or outdated."""
-    connection = get_connection(database_path)
+@contextmanager
+def connection_scope() -> Iterator[sqlite3.Connection]:
+    """Context manager that commits on success and rolls back on error."""
+    conn = get_connection()
     try:
-        with connection:
-            connection.execute(PRODUCTS_TABLE_SQL)
-            columns = {row["name"] for row in connection.execute("PRAGMA table_info(products)")}
-            if "category" not in columns:
-                connection.execute("ALTER TABLE products ADD COLUMN category TEXT")
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
-        connection.close()
+        conn.close()
+
+
+def init_db() -> None:
+    """Create all tables defined in schema.sql if they do not already exist."""
+    schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
+    with connection_scope() as conn:
+        conn.executescript(schema_sql)
+    logger.info("Database initialized at %s", DATABASE_PATH)

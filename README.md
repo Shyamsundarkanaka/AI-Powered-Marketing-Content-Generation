@@ -1,24 +1,52 @@
-# AI-Powered Marketing Content Generation System
+# AI-Powered Marketing Content Generation
 
-Production-style marketing-content generation system for Radboards (https://radboards.in/).
-
-## Current progress
-
-Step 7 is complete: product understanding and marketing-script generation are implemented with Gemini structured-output adapters and local tests. The next module is caption generation.
+Step 1: database layer and Streamlit control-center UI.
+Step 2: Radboards scraper.
+Step 3: background worker.
 
 ## Setup
 
-1. Create and activate a Python virtual environment.
-2. Install dependencies with `pip install -r requirements.txt`.
-3. Install the Playwright browser with `playwright install`.
-4. Copy `.env.example` to `.env` and fill in only the credentials needed for the module being developed.
+```bash
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+```
 
-## Architecture boundaries
+## Seed the initial products
 
-- **n8n** manages the business workflow, review, scheduling, and status updates.
-- **LangGraph** handles AI reasoning and agent orchestration.
-- **Python modules** handle deterministic work such as scraping, database access, APIs, TTS, rendering helpers, and storage.
-- **MoviePy** renders videos from the Creative Director's `video_plan.json`.
+```bash
+python -m database.seed_products
+```
 
-The architecture document remains the source of truth. Modules will be implemented and tested one at a time.
+## Run the Streamlit app
 
+```bash
+streamlit run streamlit_app/app.py
+```
+
+## Run the background worker
+
+```bash
+python -m worker.run
+```
+
+Long-lived process; polls for queued jobs and processes them one at a time.
+Queue a job from the Streamlit UI's "Queue Run" control, or leave it running
+in a separate terminal alongside Streamlit. Stop with Ctrl+C.
+
+## What's here
+
+- `config/settings.py` — environment-driven configuration (DB path, output dir, log dir).
+- `database/schema.sql` — SQLite schema: `products`, `jobs`, `versions`, `outputs`, `logs`.
+- `database/connection.py` — connection handling and schema initialization.
+- `database/models.py` — typed dataclasses for each table.
+- `database/repository.py` — CRUD operations used by the UI and (later) the background worker.
+- `database/seed_products.py` — seeds the five initial Radboards products.
+- `streamlit_app/` — control center: add products, queue runs, review versions/logs. No AI inference happens here.
+- `scraper/radboards.py` — scrapes one product's Shopify `.json` endpoint into structured data (title, description, price, images, specs).
+- `scraper/run.py` — manual CLI: `python -m scraper.run --product-id N` or `--all`.
+- `worker/run.py` — long-lived worker: `python -m worker.run` polls the `jobs` queue and runs the scraper for each job picked up.
+
+Product lifecycle: `Pending -> Running -> Review -> Approved | Rejected | Failed | Cancelled`.
+Every rejection produces a new immutable version; no version is overwritten.
