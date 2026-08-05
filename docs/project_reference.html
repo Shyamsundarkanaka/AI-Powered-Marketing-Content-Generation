@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Radboards Marketing Content System — Project Reference</title>
+  <style>
+    :root { --ink:#12233f; --muted:#57657a; --line:#dce4ef; --blue:#2369d1; --pale:#f4f8ff; --green:#087d55; --amber:#a45f00; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:#f4f6fa; color:var(--ink); font-family:Inter,Segoe UI,Arial,sans-serif; line-height:1.55; }
+    main { max-width:1060px; margin:0 auto; padding:38px 24px 64px; }
+    header { background:linear-gradient(135deg,#102a52,#2369d1); color:#fff; padding:42px; border-radius:18px; box-shadow:0 12px 30px #162f5724; }
+    h1 { margin:0 0 8px; font-size:clamp(1.9rem,4vw,3rem); letter-spacing:-.03em; }
+    h2 { margin:38px 0 14px; font-size:1.38rem; }
+    h3 { margin:0 0 7px; font-size:1rem; }
+    p { margin:8px 0; }
+    .eyebrow { margin:0 0 12px; color:#c7dcff; font-size:.78rem; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+    .lead { max-width:750px; margin:0; color:#e8f1ff; font-size:1.08rem; }
+    .meta { margin-top:23px; display:flex; flex-wrap:wrap; gap:9px; }
+    .pill { border:1px solid #ffffff48; border-radius:999px; padding:5px 10px; color:#eff5ff; font-size:.84rem; }
+    .card, table { background:#fff; border:1px solid var(--line); box-shadow:0 3px 12px #1929420a; }
+    .card { padding:22px; border-radius:13px; margin:14px 0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .status { border-left:4px solid var(--green); }
+    .next { border-left:4px solid var(--amber); background:#fffaf2; }
+    table { width:100%; border-collapse:separate; border-spacing:0; border-radius:12px; overflow:hidden; }
+    th,td { padding:12px 14px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { background:var(--pale); font-size:.84rem; text-transform:uppercase; letter-spacing:.04em; }
+    tr:last-child td { border-bottom:0; }
+    code { background:#edf3fc; color:#143d78; padding:2px 5px; border-radius:4px; font-family:Consolas,monospace; font-size:.9em; }
+    pre { margin:12px 0 0; padding:16px; overflow:auto; background:#0e1e36; color:#e7effc; border-radius:10px; font: .88rem/1.55 Consolas,monospace; }
+    ul { padding-left:21px; }
+    li { margin:5px 0; }
+    a { color:#0c57bf; }
+    .flow { margin:12px 0; padding:20px; border-radius:10px; background:var(--pale); text-align:center; font-weight:700; color:#204a85; }
+    .flow span { display:inline-block; padding:6px 7px; }
+    .arrow { color:#7b94b8; }
+    .small { color:var(--muted); font-size:.9rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Implementation reference • updated 3 August 2026</p>
+      <h1>Radboards Marketing Content System</h1>
+      <p class="lead">A production-style Python project that will prepare marketing content for selected public Radboards products. This page is the handover reference before starting the caption-generation module.</p>
+      <div class="meta">
+        <span class="pill">Business: Radboards</span>
+        <span class="pill">Website: radboards.in</span>
+        <span class="pill">Implemented stages: foundation, database, catalogue scraper, image downloader, catalogue synchronization, campaign brief, marketing script</span>
+      </div>
+    </header>
+
+    <section>
+      <h2>1. Current state</h2>
+      <div class="card status">
+        <h3>Completed and verified</h3>
+        <p>The project foundation, local SQLite product tracker, focused Radboards catalogue scraper, controlled image downloader, catalogue-to-database synchronization, product understanding, and marketing-script generation are complete. Seventeen automated tests pass. The next module is caption generation.</p>
+      </div>
+      <div class="card">
+        <h3>Important scope rule</h3>
+        <p>The system reads only five specified Radboards collections and will request no more than seven products from any one collection. Accessories, rentals, blogs, service pages, and all other site content are out of scope.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. Project architecture</h2>
+      <div class="flow">
+        <span>Radboards public catalogue</span><span class="arrow">→</span>
+        <span>Python scraper</span><span class="arrow">→</span>
+        <span>SQLite tracker</span><span class="arrow">→</span>
+        <span>Future AI/content workflow</span>
+      </div>
+      <div class="grid">
+        <div class="card"><h3>Python</h3><p>Handles deterministic tasks: public catalogue reading, database work, future image downloads, rendering helpers, and external API wrappers.</p></div>
+        <div class="card"><h3>LangGraph (later)</h3><p>Will handle product understanding, campaign briefs, scripts, captions, hashtags, creative direction, and feedback reasoning.</p></div>
+        <div class="card"><h3>n8n (later)</h3><p>Will handle business workflow: triggers, review, approval, notifications, uploads, and status updates.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>3. Implemented database module</h2>
+      <p>The database is a local SQLite file. It is created only when the application calls <code>initialize_database()</code>; no database file has to be committed to Git.</p>
+      <table>
+        <thead><tr><th>File</th><th>Responsibility</th></tr></thead>
+        <tbody>
+          <tr><td><code>database/connection.py</code></td><td>Opens the configured SQLite file, turns on foreign-key checks, creates the <code>products</code> table, and closes connections safely.</td></tr>
+          <tr><td><code>database/repository.py</code></td><td>Provides <code>add_product()</code> and <code>get_next_unprocessed_product()</code>, keeping database queries out of other modules.</td></tr>
+          <tr><td><code>tests/test_repository.py</code></td><td>Tests database creation, product insertion/retrieval, and duplicate URL prevention.</td></tr>
+        </tbody>
+      </table>
+      <h3>Products table</h3>
+      <p>The table stores <code>product_id</code>, <code>url</code>, <code>product_name</code>, <code>category</code>, <code>status</code>, timestamps, <code>last_processed_at</code>, <code>drive_link</code>, and <code>approval_status</code>. New rows start as <code>pending</code> and <code>not_reviewed</code>.</p>
+    </section>
+
+    <section>
+      <h2>4. Implemented Radboards catalogue scraper</h2>
+      <p><code>scraper/radboards.py</code> reads Radboards’ public Shopify collection JSON feeds. It does not scrape private pages, sign in, add products to a cart, place orders, or modify anything on the Radboards website.</p>
+      <table>
+        <thead><tr><th>Selected product type</th><th>Public collection</th><th>Verified catalogue count</th><th>System maximum</th></tr></thead>
+        <tbody>
+          <tr><td>Hoverboards</td><td><a href="https://radboards.in/collections/buy-hoverboards-online-for-kids-for-adults">Collection page</a></td><td>3</td><td>7</td></tr>
+          <tr><td>Self Balancing Scooters</td><td><a href="https://radboards.in/collections/professional">Collection page</a></td><td>1</td><td>7</td></tr>
+          <tr><td>Handle Hoverboards</td><td><a href="https://radboards.in/collections/handle-hoverboard">Collection page</a></td><td>1</td><td>7</td></tr>
+          <tr><td>Electric Unicycles</td><td><a href="https://radboards.in/collections/electric-unicycle-euc">Collection page</a></td><td>5</td><td>7</td></tr>
+          <tr><td>E-Scooters</td><td><a href="https://radboards.in/collections/electric-kickscooter-for-adults-kickscooter-electric-adults-kids">Collection page</a></td><td>2</td><td>7</td></tr>
+        </tbody>
+      </table>
+      <p>For each product, the scraper returns a stable <code>ScrapedProduct</code> record containing its category, title, public product URL, cleaned text description, integer price in INR, availability, and image URLs.</p>
+      <div class="card"><h3>Related files</h3><ul><li><code>scraper/__init__.py</code> — marks the scraper as a Python package.</li><li><code>scraper/radboards.py</code> — category definitions, public JSON download, parsing, and error handling.</li><li><code>tests/test_radboards_scraper.py</code> — tests selected categories, product mapping, and seven-product cap.</li><li><code>docs/radboards_catalog_scope.md</code> — concise machine-independent scope record.</li></ul></div>
+    </section>
+
+    <section>
+      <h2>5. Connections and accounts</h2>
+      <table>
+        <thead><tr><th>Service</th><th>Connection status</th><th>What happens now</th></tr></thead>
+        <tbody>
+          <tr><td>Radboards</td><td>Public read-only access</td><td>The scraper sends ordinary unauthenticated requests to public product catalogue endpoints.</td></tr>
+          <tr><td>SQLite</td><td>Local file only</td><td>Python creates and reads a database file at the configured path, normally <code>database/marketing_content.db</code>.</td></tr>
+          <tr><td>Gemini API</td><td>Not connected</td><td>No API key has been added or used.</td></tr>
+          <tr><td>Google Drive</td><td>Not connected</td><td>No Google account, folder ID, or credentials have been used.</td></tr>
+          <tr><td>n8n / email</td><td>Not connected</td><td>No workflow, webhook, email account, or reviewer has been configured.</td></tr>
+          <tr><td>GitHub</td><td>No new push in this work</td><td>The initial project foundation had already been pushed. The current database and scraper work remains local and uncommitted until you choose to commit it.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>6. How verification was performed</h2>
+      <p>Tests use Python’s built-in <code>unittest</code> module; no extra testing dependency was added. The suite checks both modules without relying on live website data, then the scraper was also run read-only against the five live collections.</p>
+      <pre>python -m unittest discover -s tests -v</pre>
+      <p>Latest result: 17 tests passed. The live scraper returned the verified product counts listed above.</p>
+    </section>
+
+    <section>
+      <h2>7. Two newly completed steps</h2>
+      <div class="card status">
+        <h3>Step 4: controlled image downloader</h3>
+        <p><code>scraper/image_downloader.py</code> accepts one <code>ScrapedProduct</code> and downloads at most five of its public product images into <code>output/images/&lt;product-handle&gt;/</code>. Existing files are reused, so a repeated run does not download or overwrite them. Generated images are excluded from Git.</p>
+      </div>
+      <div class="card status">
+        <h3>Step 5: catalogue-to-database synchronization</h3>
+        <p><code>scraper/catalog_sync.py</code> reads only the five approved collections, adds their products to SQLite, preserves the product category, and skips URLs that already exist. This creates the bridge from public catalogue data to the local workflow queue.</p>
+      </div>
+      <p>Related tests are <code>tests/test_image_downloader.py</code> and <code>tests/test_catalog_sync.py</code>. The database migration adds the optional <code>category</code> column safely if an earlier local database already exists.</p>
+    </section>
+
+    <section><h2>8. Two newly completed AI steps</h2><div class="card status"><h3>Step 6: product understanding and campaign briefs</h3><p><code>agents/product_understanding/campaign_brief.py</code> turns a scraped product, optional local image paths, and approved brand context into a validated campaign brief. This brief is the single source of truth for later content agents.</p></div><div class="card status"><h3>Step 7: marketing-script generation</h3><p><code>agents/script/marketing_script.py</code> turns one campaign brief into a structured 15-to-45-second Instagram Reel script with a hook, voiceover, on-screen text, and call to action.</p></div><p><code>agents/gemini.py</code> is the shared Gemini structured-output adapter. It uses <code>GEMINI_API_KEY</code> only for an intentional live AI run; the tests use local fake model responses, so no account or API key has been used. The editable brand context is <code>docs/brand/radboards_brand_context.md</code>.</p></section><section><h2>9. Immediate next step: caption generation</h2><div class="card next"><h3>Build only this module next</h3><p>Create a caption-generation agent that accepts a campaign brief and marketing script, then returns an Instagram caption with a focused call to action. Do not add hashtags, voiceover, video rendering, publishing, or review automation yet.</p></div></section><section><h2>10. Local setup and commands</h2>
+      <pre>cd C:\Users\shyam\OneDrive\Desktop\AI-Powered-Marketing-Content-Generation
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m unittest discover -s tests -v</pre>
+      <p class="small">The project’s <code>.env.example</code> already documents future environment variables. Leave values empty until the associated module is being built.</p>
+    </section>
+  </main>
+</body>
+</html>

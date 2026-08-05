@@ -1,0 +1,1 @@
+"""Marketing-script generation from approved campaign briefs."""

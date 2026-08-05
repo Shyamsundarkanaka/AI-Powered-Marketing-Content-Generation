@@ -1,0 +1,1 @@
+"""Product understanding and campaign-brief generation."""
