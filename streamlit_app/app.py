@@ -1,0 +1,216 @@
+"""Streamlit control center. Products table is the primary view. No AI inference happens here."""
+from __future__ import annotations
+
+import sqlite3
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+import streamlit as st
+
+from database.connection import init_db
+from database.repository import (
+    count_active_jobs,
+    count_rejections_by_product,
+    create_job,
+    create_product,
+    delete_product_with_files,
+    get_active_job_for_product,
+    get_product,
+    list_jobs_for_product,
+    list_products,
+    request_job_cancel,
+    update_product_status,
+)
+from streamlit_app._shared import (
+    STAGE_LABELS,
+    centered_title,
+    hide_sidebar,
+    inject_spinner_css,
+    running_badge,
+    stage_progress,
+    tighten_top_padding,
+)
+from worker.autostart import ensure_worker_running
+
+st.set_page_config(page_title="Dashboard", page_icon="\U0001F4E6", layout="wide")
+hide_sidebar()
+tighten_top_padding()
+inject_spinner_css()
+
+init_db()
+ensure_worker_running()
+
+centered_title("Dashboard")
+st.caption("Control center for product intake, pipeline runs and review.")
+
+with st.expander("➕ Add Product", expanded=False):
+    with st.form("add_product_form", clear_on_submit=True):
+        name = st.text_input("Product name")
+        url = st.text_input("Product URL")
+        submitted = st.form_submit_button("Add Product")
+    if submitted:
+        if not name.strip() or not url.strip():
+            st.error("Both product name and URL are required.")
+        else:
+            try:
+                product = create_product(name.strip(), url.strip())
+                st.success(f"Added '{product.name}' as product #{product.id}.")
+                st.rerun()
+            except sqlite3.IntegrityError:
+                st.error("A product with this URL already exists.")
+
+st.divider()
+
+products = list_products()
+rejection_counts = count_rejections_by_product()
+
+ALL_STATUSES = ["Pending", "Running", "Review", "Approved", "Failed", "Cancelled"]
+
+status_counts: dict[str, int] = {}
+for product in products:
+    status_counts[product.status] = status_counts.get(product.status, 0) + 1
+
+cols = st.columns(len(ALL_STATUSES))
+for col, status in zip(cols, ALL_STATUSES):
+    col.metric(status, status_counts.get(status, 0))
+
+st.divider()
+st.subheader("Products")
+
+filter_col, search_col = st.columns([2, 3])
+with filter_col:
+    status_filter = st.multiselect("Filter by status", ALL_STATUSES, default=[])
+with search_col:
+    search_term = st.text_input("Search by name or URL", placeholder="Type to search…")
+
+filtered = products
+if status_filter:
+    filtered = [p for p in filtered if p.status in status_filter]
+if search_term.strip():
+    term = search_term.strip().lower()
+    filtered = [p for p in filtered if term in p.name.lower() or term in p.url.lower()]
+
+# A run is already in flight somewhere — the worker only processes one job at a
+# time, so every "Run" action is disabled until it finishes. This is checked
+# once per page load, so a click always reflects the latest queue state after
+# the resulting st.rerun().
+any_active_job = count_active_jobs() > 0
+
+if not products:
+    st.info("No products yet. Use **Add Product** above to add one.")
+elif not filtered:
+    st.warning("No products match the current filter/search.")
+else:
+    if any_active_job:
+        st.caption("⏳ A run is already in progress — new runs are disabled until it finishes.")
+
+    confirm_delete_id = st.session_state.get("confirm_delete_id")
+    if confirm_delete_id is not None:
+        confirm_product = get_product(confirm_delete_id)
+        if confirm_product is None:
+            st.session_state.pop("confirm_delete_id", None)
+        else:
+            with st.container(border=True):
+                st.warning(
+                    f"⚠️ Delete **{confirm_product.name}** (#{confirm_product.id})? This "
+                    f"permanently removes its database record **and every generated file** "
+                    f"under `{confirm_product.output_dir}` (briefs, scripts, video, voiceover, "
+                    f"captions, hashtags — all versions). This cannot be undone."
+                )
+                confirm_col, cancel_col = st.columns(2)
+                if confirm_col.button(
+                    "🗑️ Yes, delete permanently", key="confirm_delete_yes", use_container_width=True
+                ):
+                    delete_product_with_files(confirm_delete_id)
+                    st.session_state.pop("confirm_delete_id", None)
+                    st.success(f"Deleted '{confirm_product.name}' and its files.")
+                    st.rerun()
+                if cancel_col.button("Cancel", key="confirm_delete_no", use_container_width=True):
+                    st.session_state.pop("confirm_delete_id", None)
+                    st.rerun()
+
+    header = st.columns([0.5, 1.8, 2.4, 1.1, 0.8, 1.2, 0.7])
+    for col, label in zip(
+        header, ["ID", "Name", "Status", "Last Updated", "Rejections", "Action", "Delete"]
+    ):
+        col.markdown(f"**{label}**")
+
+    RUNNABLE_STATUSES = {"Pending", "Failed", "Cancelled"}
+    should_poll = False
+
+    for p in filtered:
+        row = st.columns([0.5, 1.8, 2.4, 1.1, 0.8, 1.2, 0.7])
+        row[0].write(f"#{p.id}")
+
+        running_job = get_active_job_for_product(p.id) if p.status == "Running" else None
+        if running_job is not None or p.status == "Running":
+            row[1].markdown(running_badge(f"[{p.name}]({p.url})"), unsafe_allow_html=True)
+            fraction, label = stage_progress(running_job.current_stage if running_job else None)
+            with row[2]:
+                st.progress(fraction, text=label)
+            should_poll = True
+        else:
+            row[1].markdown(f"[{p.name}]({p.url})")
+            with row[2]:
+                st.write(p.status)
+                if p.status == "Failed":
+                    # Surface exactly which pipeline node the job died on, plus
+                    # the error, so a Failed row is actionable without digging
+                    # into logs — current_stage/error_message come from the
+                    # most recent job (list_jobs_for_product is newest-first).
+                    jobs = list_jobs_for_product(p.id)
+                    last_job = jobs[0] if jobs else None
+                    if last_job:
+                        stage_label = STAGE_LABELS.get(last_job.current_stage, last_job.current_stage)
+                        detail = f"Failed at: **{stage_label or 'unknown stage'}**"
+                        if last_job.error_message:
+                            detail += f" — {last_job.error_message}"
+                        st.caption(detail)
+
+        row[3].write(p.updated_at)
+        row[4].write(rejection_counts.get(p.id, 0))
+
+        action_col = row[5]
+        if p.status == "Running":
+            if running_job and action_col.button("✋ Cancel", key=f"cancel_{p.id}", use_container_width=True):
+                request_job_cancel(running_job.id)
+                st.info(f"Cancel requested for product #{p.id}.")
+                st.rerun()
+        elif p.status == "Approved":
+            action_col.markdown(f"[✅ View Output →](Output?product_id={p.id})")
+        elif p.status in RUNNABLE_STATUSES:
+            label = "▶️ Run" if p.status == "Pending" else "🔁 Retry"
+            if action_col.button(
+                label, key=f"run_{p.id}", disabled=any_active_job, use_container_width=True
+            ):
+                create_job(p.id)
+                # Reflect "Running" immediately rather than waiting up to
+                # WORKER_POLL_INTERVAL_SECONDS for the worker to pick the job
+                # up and flip this itself — the row should show the spinner
+                # and progress bar on this very rerun, not the next one.
+                update_product_status(p.id, "Running")
+                st.success(f"Queued a run for product #{p.id}.")
+                st.rerun()
+        else:
+            # Covers "Review" and the rare transient "Rejected" (which flips
+            # back to Pending the moment feedback is submitted) — both just
+            # need a way into the same Output tab to see the latest version.
+            action_col.markdown(f"[📝 Review →](Output?product_id={p.id})")
+
+        delete_col = row[6]
+        if delete_col.button(
+            "🗑️",
+            key=f"delete_{p.id}",
+            use_container_width=True,
+            disabled=p.status == "Running",
+            help="Delete this product, its jobs/versions and all generated files",
+        ):
+            st.session_state["confirm_delete_id"] = p.id
+            st.rerun()
+
+    if should_poll:
+        time.sleep(2)
+        st.rerun()
