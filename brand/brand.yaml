@@ -1,0 +1,172 @@
+# Radboards brand system — machine-readable source of truth.
+#
+# Two consumers read this file:
+#   1. graph/prompts.py  — injects `voice`, `audience`, `language`, `compliance`
+#                          and `content_rules` into every agent prompt.
+#   2. media/movie.py    — reads `visual` for colours, fonts and layout safe areas.
+#
+# The prose companions (BRAND_GUIDELINES.md, PERSONAS.md, VISUAL_IDENTITY.md,
+# COMPLIANCE.md) explain the *why*; this file is what the code actually parses.
+# Keep them in sync — if you change a rule here, change the rationale there.
+
+brand:
+  name: Radboards
+  category: Personal electric mobility (hoverboards, off-road boards, electric unicycles)
+  market: India
+  currency_symbol: "₹"
+  website: https://radboards.in
+  one_liner: Built for the ride to everywhere.
+  positioning: >-
+    Radboards makes personal electric rides that survive real Indian streets —
+    potholes, monsoon puddles, 4th-floor walk-ups and campus corridors. We are
+    not a toy brand and not a luxury brand: we are the dependable, genuinely fun
+    way to cover the last three kilometres.
+
+voice:
+  archetype: The Explorer, with an engineer's honesty
+  personality: [confident, warm, specific, playful, never hype-y]
+  tone_by_context:
+    campaign_brief: analytical and plain-spoken; written for a marketer, not a customer
+    script: spoken-word energy; short sentences a narrator can say in one breath
+    caption: conversational and human; sounds like a person, not a press release
+    hashtags: plain lowercase, no camelCase walls, no keyword stuffing
+  principles:
+    - Lead with the rider's moment, not the spec sheet. Specs are the proof, never the hook.
+    - One concrete number beats three adjectives. "45 km range" over "incredible range".
+    - Write like you are talking to one person who is standing next to the board.
+    - Earn the excitement. Claim only what the scraped product data actually supports.
+    - Short sentences. Cut every word that is doing no work.
+  we_say:
+    - ride, rider, board, charge, range, grip, glide, commute
+    - 'constructions like "built for", "made to take", "holds up to"'
+  we_never_say:
+    - revolutionary, game-changing, disruptive, cutting-edge, unleash, elevate
+    - best-in-class, world-class, next-generation, seamless, synergy
+    - 'fake urgency: "buy now before it''s gone", countdown timers, invented scarcity'
+    - any medical, safety-guarantee or injury-prevention claim
+    - competitor brand names, direct comparisons, or "better than X" framing
+
+audience:
+  primary: urban-commuter
+  personas:
+    - id: urban-commuter
+      name: Aditya, 26
+      snapshot: >-
+        Bengaluru, works hybrid, metro drops him 2.5 km from the office. Owns a
+        bike he refuses to ride in traffic. Buys on Instagram after 3 weeks of
+        research.
+      wants: [predictable commute time, something he can carry up to a 3rd-floor flat, range he can trust on a Friday]
+      fears: [being stranded at 40% battery, looking silly at work, cheap build that rattles in a month]
+      hook_that_works: the exact minute-count of their commute, before and after
+    - id: campus-rider
+      name: Nikita, 20
+      snapshot: >-
+        Engineering student, big campus, 8-minute walks between blocks. Price
+        sensitive, brand-aware, screenshots everything to a group chat.
+      wants: [fun, fast between-class hops, something that looks good in a reel]
+      fears: [parental veto on price, charging in a hostel room, breaking it in week one]
+      hook_that_works: speed and style framed as a shared moment, not a solo flex
+    - id: weekend-explorer
+      name: Rohit, 34
+      snapshot: >-
+        Owns a car, lives in a gated township, rides for fun on Sunday mornings
+        and takes the kids along. Reads spec sheets properly.
+      wants: [off-road capability, real torque, build quality he can inspect]
+      fears: [underpowered motor, tyres that die on gravel, water damage]
+      hook_that_works: terrain the board can actually take, stated plainly
+
+language:
+  reading_level: Grade 7
+  english: Indian English
+  sentence_max_words: 18
+  emoji:
+    caption: 1 to 3, only where they replace a word
+    script: none
+    campaign_brief: none
+  numbers: >-
+    Always render specs exactly as scraped — do not round, convert or invent
+    units. Prices use the rupee symbol with no decimal (e.g. ₹24,999).
+
+content_rules:
+  campaign_brief:
+    sections: [objective, target_persona, key_message, proof_points, channels, success_metric]
+    proof_points_min: 3
+    note: Every proof point must trace to a scraped spec, price or description line.
+  script:
+    duration_seconds: [25, 32]
+    words_per_second: 2.4
+    structure: [hook, problem, product_reveal, proof, cta]
+    hook_max_words: 12
+    note: Written to be spoken aloud. No stage directions inside the spoken lines.
+  caption:
+    max_chars: 300
+    first_line_max_chars: 70
+    cta_required: true
+    note: First line is the scroll-stopper; it must work with the rest truncated.
+  hashtags:
+    count: [8, 12]
+    always_include: ["#radboards"]
+    style: lowercase, no numbers unless part of the product name
+    banned: ["#viral", "#followforfollow", "#likeforlike", "#trending", "#explorepage"]
+  video_plan:
+    scene_count: [5, 7]
+    aspect: vertical
+    note: One scene per script beat. Every scene names the image it uses by index.
+
+compliance:
+  must:
+    - State the price only if it was scraped; never estimate one.
+    - Present specs verbatim from scraped data; attribute ranges as "up to" where the source does.
+    - Any safety mention must be phrased as a recommendation ("wear a helmet"), never a guarantee.
+  must_not:
+    - Promise delivery times, warranty terms, EMI options or discounts not present in scraped data.
+    - Imply road-legality, insurance status or regulatory approval.
+    - Make health, fitness, medical or injury-prevention claims.
+    - Target minors, or depict riding without protective gear in copy.
+  disclosure: >-
+    Range, speed and charge-time figures are manufacturer claims and vary with
+    rider weight, terrain and temperature. Include this whenever a headline
+    number is the main claim of the asset.
+
+visual:
+  # Consumed directly by media/movie.py.
+  palette:
+    ink: "#0B0E14"        # base background, letterbox fill
+    surface: "#151C28"    # cards, lower-third plates
+    primary: "#FF5A1F"    # ignite orange — CTA, key numbers, progress bar
+    accent: "#17E0C4"     # charge teal — secondary highlights, spec labels
+    paper: "#F5F7FA"      # primary text on dark
+    muted: "#9AA7B8"      # secondary text
+  gradient_scrim: ["#0B0E14", "#0B0E1400"]   # bottom-up scrim over photography
+  typography:
+    display:
+      family: Bahnschrift
+      candidates: [bahnschrift.ttf, impact.ttf, arialbd.ttf, DejaVuSans-Bold.ttf]
+      case: upper
+      tracking: 2          # extra px between glyphs
+    body:
+      family: Segoe UI
+      candidates: [segoeui.ttf, arial.ttf, DejaVuSans.ttf]
+      case: sentence
+      tracking: 0
+  video:
+    aspect: vertical
+    width: 1080
+    height: 1920
+    fps: 30
+    safe_area:              # px kept clear of platform UI (Reels/Shorts/TikTok)
+      top: 220
+      bottom: 380
+      left: 72
+      right: 72
+    ken_burns:
+      zoom_start: 1.06
+      zoom_end: 1.18
+      max_pan_px: 90
+    transition_seconds: 0.45
+    title_card_seconds: 2.2
+    cta_card_seconds: 3.0
+  logo:
+    wordmark: RADBOARDS
+    lockup_position: top-left
+    clear_space_px: 48

@@ -1,4 +1,20 @@
+# UI + config
 streamlit==1.38.0
 python-dotenv==1.0.1
+
+# Scraping
 requests==2.32.3
 beautifulsoup4==4.12.3
+
+# Brand definition
+PyYAML==6.0.3
+
+# LangGraph pipeline + Claude agents
+langgraph==1.2.10
+langchain-anthropic==1.5.4
+
+# Media rendering (imageio-ffmpeg bundles the ffmpeg binary — no system install)
+moviepy==2.2.1
+imageio-ffmpeg==0.6.0
+pillow==10.4.0
+numpy==2.5.1

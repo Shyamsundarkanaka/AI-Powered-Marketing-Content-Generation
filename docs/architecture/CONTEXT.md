@@ -18,10 +18,13 @@ never runs AI inference itself; a separate background worker does.
 **Step 1 done: database layer + Streamlit control-center UI shell.**
 **Step 2 done: Radboards scraper.**
 **Step 3 done: background worker.**
+**Step 4 done: brand system, LangGraph pipeline, voiceover, video rendering,
+reviewer-feedback loop.**
 Full detail, schema, file list, decisions made, and rationale:
 → **[`v1_step1_database_streamlit.md`](./v1_step1_database_streamlit.md)**
 → **[`v2_scraper.md`](./v2_scraper.md)**
 → **[`v3_worker.md`](./v3_worker.md)**
+→ **[`v4_langgraph_pipeline.md`](./v4_langgraph_pipeline.md)**
 
 In short: 5-table SQLite schema (`products`, `jobs`, `versions`, `outputs`,
 `logs`) with CRUD in `database/repository.py`; a Streamlit app
@@ -39,34 +42,44 @@ were updated to match live site titles where they'd drifted (e.g. "Maverick"
 -> "Roadster").
 
 `worker/run.py` (`python -m worker.run`) is a long-lived process that polls
-`get_next_pending_job()` and runs the scraper for whatever job it picks up,
-updating job/product status and writing log lines — the Streamlit "Queue Run"
-control (in `streamlit_app/app.py`) calls `create_job()` to add work to that
-queue. A job today only scrapes (no AI agents exist yet); on success the
-product returns to `Pending`, on failure it becomes `Failed`. The Output tab
-still shows nothing new yet, since no version/output rows are created until
-content-generation stages exist.
+`get_next_pending_job()` and, for each job, scrapes the product and then runs
+the LangGraph pipeline over the scraped data. The Streamlit "Queue Run" control
+(in `streamlit_app/app.py`) calls `create_job()` to add work to that queue.
+
+A job now produces a complete reviewable version — campaign brief, script,
+caption, hashtags, voiceover WAV, video plan and a rendered 1080x1920 MP4 —
+under `output/<product>/v<N>/`, and leaves the product in `Review`. The Output
+tab renders those artifacts inline (video/audio players, markdown, copyable
+caption) with Approve / Reject-and-regenerate controls.
+
+`ANTHROPIC_API_KEY` defaults to a **placeholder**, so out of the box every agent
+call 401s and each node falls back to its documented stub output — realistic
+copy built from the product's real scraped data, marked `STUB` in the UI and in
+`_meta.json`. Drop a real key into `.env` and it generates for real with no code
+change. The video and voiceover are real artifacts either way.
+
+Rejecting a version requires typed feedback, auto-queues a regeneration job, and
+that feedback plus the previous copy is injected into every agent prompt for the
+next version.
 
 ## What's NOT built yet (next steps, no invented specifics)
 
-These are listed as a roadmap only — deliberately not designed in detail
-until we actually get there, so nothing here is a commitment to a specific
-implementation:
+Roadmap items 1-4 (LangGraph agents, voiceover, video, feedback loop) all
+landed in Step 4. What remains, deliberately not designed in detail until we
+get there:
 
-1. **LangGraph workflow + AI agents** — campaign brief, script, caption,
-   hashtags generation, using `scraped_data` as input. Streamlit must stay
-   out of this entirely. This is the thing that will finally make the
-   Output tab show real data (versions/outputs), since `process_job` in
-   `worker/run.py` currently only scrapes.
-2. **Voiceover (TTS)** generation.
-3. **Video plan + rendering** (likely moviepy, per earlier scaffolding that
-   was intentionally not restored — see "Notes" below).
-4. **Reviewer-feedback-as-context loop**: when a version is rejected, its
-   `reviewer_feedback` needs to actually be fed into the next generation
-   attempt for that product.
-5. **Logging/monitoring, error handling, testing strategy** — not yet
-   revisited since Step 1's minimal logging table. Also includes: worker
-   crash recovery (a killed worker leaves job/product stuck in `Running`).
+1. **Testing strategy** — there is still no automated test anywhere. Every
+   check in Steps 1-4 was manual. This is now the largest gap by some margin.
+2. **Real TTS** — voiceover is silence of the correct duration by default;
+   `ENABLE_TTS=true` with `pyttsx3` is a stopgap, not a provider integration.
+3. **Worker crash recovery** — a killed worker still leaves a job and product
+   stuck in `Running`. (Step 4 fixed the related orphan-*version* problem: the
+   `versions` row is now created at the end of a run, not the start.)
+4. **Programmatic brand enforcement** — the banned vocabulary and compliance
+   rules are injected into prompts and documented in `brand/COMPLIANCE.md`, but
+   nothing in code rejects a violating generation. The human reviewer is the
+   only backstop.
+5. **Monitoring** — logging is still just the `logs` table plus stdout.
 
 Pick these up one at a time, in roughly this order, unless told otherwise.
 
@@ -78,6 +91,11 @@ Pick these up one at a time, in roughly this order, unless told otherwise.
   "next steps" sections instead, and add the new file to the list below.
 - Run everything from the project root (`pip install -r requirements.txt`,
   `python -m database.seed_products`, `streamlit run streamlit_app/app.py`).
+- Brand rules live in `brand/brand.yaml`, not in Python. Agents read it via
+  `graph/prompts.py`; the renderer reads it via `media/movie.py`. Never
+  hard-code a colour, a persona or a content rule.
+- Agents may only state facts present in `scraped_data` — that constraint is the
+  reason they are given nothing else about the product.
 - All config via env vars (`config/settings.py`), paths anchored to
   `BASE_DIR` — never assume the process cwd.
 - SQLite is the only persistence layer; don't introduce another one.
@@ -99,3 +117,4 @@ to that old scaffold's file layout, they don't apply to the current code.
 | [`v1_step1_database_streamlit.md`](./v1_step1_database_streamlit.md) | Step 1 — Database + Streamlit UI | Done |
 | [`v2_scraper.md`](./v2_scraper.md) | Step 2 — Radboards scraper | Done |
 | [`v3_worker.md`](./v3_worker.md) | Step 3 — Background worker | Done |
+| [`v4_langgraph_pipeline.md`](./v4_langgraph_pipeline.md) | Step 4 — Brand system, LangGraph pipeline, voiceover, video | Done |

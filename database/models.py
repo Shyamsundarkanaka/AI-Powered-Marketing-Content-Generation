@@ -37,10 +37,14 @@ class Job:
     created_at: str
     started_at: Optional[str]
     completed_at: Optional[str]
+    current_stage: Optional[str]
+    cancel_requested: bool
 
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "Job":
-        return cls(**dict(row))
+        data = dict(row)
+        data["cancel_requested"] = bool(data.get("cancel_requested", 0))
+        return cls(**data)
 
 
 @dataclass
