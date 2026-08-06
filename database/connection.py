@@ -56,6 +56,10 @@ def _migrate(conn: sqlite3.Connection) -> None:
     if "cancel_requested" not in existing:
         conn.execute("ALTER TABLE jobs ADD COLUMN cancel_requested INTEGER NOT NULL DEFAULT 0")
 
+    existing_version_cols = {row["name"] for row in conn.execute("PRAGMA table_info(versions)")}
+    if "feedback_scope" not in existing_version_cols:
+        conn.execute("ALTER TABLE versions ADD COLUMN feedback_scope TEXT")
+
 
 def init_db() -> None:
     """Create all tables defined in schema.sql if they do not already exist."""

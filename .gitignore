@@ -1,8 +1,16 @@
 venv/
 __pycache__/
 *.pyc
+
+# Secrets — .env.example is the tracked template
 .env
+
+# Generated at runtime: database, downloaded photos, TTS voices, rendered
+# artifacts, logs. All reproducible; none of it belongs in version control.
 data/
 output/
 logs/
+brand_backups/
+
+.pytest_cache/
 .streamlit/secrets.toml

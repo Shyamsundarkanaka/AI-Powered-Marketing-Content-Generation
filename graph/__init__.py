@@ -1,12 +1,12 @@
 """LangGraph content-generation pipeline.
 
-The worker calls `run_pipeline(product_id, job_id)`. Everything else in this
-package is an implementation detail of the graph: state shape, node functions,
-prompts, the LLM client and its stub fallback.
+The worker calls `graph.pipeline.run_pipeline(product_id, job_id)`. Everything
+else in this package is an implementation detail of the graph: state shape, node
+functions, prompts, response schemas and the LLM client.
 
-Nothing here touches Streamlit, and Streamlit never imports this package —
-inference happens only in the worker process.
+Deliberately empty of imports. Re-exporting `run_pipeline` here would drag
+langgraph, the provider clients, moviepy and Pillow into the process for anyone
+who so much as touches `graph.schemas` — and it makes `python -m graph.pipeline`
+emit a "found in sys.modules" warning, because the package import runs the
+module before runpy does.
 """
-from graph.pipeline import build_graph, run_pipeline
-
-__all__ = ["build_graph", "run_pipeline"]

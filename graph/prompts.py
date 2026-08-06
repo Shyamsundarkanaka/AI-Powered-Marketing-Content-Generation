@@ -8,8 +8,11 @@ Two things are true of every prompt here:
   told this explicitly, because the failure mode that matters most in generated
   marketing copy is a confident invented number.
 
-Each builder returns `(system, user)`. Required JSON keys live next to the
-builder so the schema and the instruction that describes it can't drift apart.
+Each builder returns `(system, user)` and ends with a `# JSON KEYS` block
+describing the shape it wants. The matching validator lives in
+`graph/schemas.py` — when you change the keys here, change it there too, since
+a response the prompt asks for but the validator rejects would loop until the
+attempt budget runs out.
 """
 from __future__ import annotations
 
@@ -98,14 +101,18 @@ def revision_directive(revision: dict[str, Any] | None) -> str:
 
 # --- Campaign brief ----------------------------------------------------------
 
-CAMPAIGN_BRIEF_KEYS = (
-    "objective",
-    "target_persona",
-    "key_message",
-    "proof_points",
-    "channels",
-    "success_metric",
-)
+
+
+def _persona_block(brand) -> str:
+    """Render each persona's id/wants/fears so the model can match a product to a
+    person by reasoning, instead of a hardcoded per-category rule living in code.
+    """
+    lines = []
+    for p in brand.personas:
+        wants = ", ".join(p.get("wants", []))
+        fears = ", ".join(p.get("fears", []))
+        lines.append(f"- {p['id']}: wants [{wants}]; fears [{fears}]")
+    return "\n".join(lines)
 
 
 def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
@@ -123,9 +130,8 @@ def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
         "Write the campaign brief for a single short-form social video promoting "
         "this product.\n\n"
         f"Choose exactly one target persona from: {', '.join(persona_ids)}. Base the "
-        "choice on the scraped product (off-road/high-wattage products lean "
-        "weekend-explorer; the cheapest classic models lean campus-rider; "
-        "everything else urban-commuter).\n\n"
+        "choice on which persona's wants and fears best fit this specific product's "
+        f"price, category and features:\n{_persona_block(brand)}\n\n"
         f"Provide at least {rules['proof_points_min']} proof points. Each proof point "
         "must quote or paraphrase a specific scraped spec, the price, or a line of "
         "the description — and name which one in `source`.\n\n"
@@ -140,8 +146,6 @@ def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 
 # --- Script ------------------------------------------------------------------
-
-SCRIPT_KEYS = ("title", "beats", "estimated_duration_seconds")
 
 
 def script_prompt(state: dict[str, Any]) -> tuple[str, str]:
@@ -174,8 +178,6 @@ def script_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 # --- Caption -----------------------------------------------------------------
 
-CAPTION_KEYS = ("caption", "first_line")
-
 
 def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
     brand = load_brand()
@@ -190,13 +192,23 @@ def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
         f"# SCRIPT\n{json.dumps(state['script'], indent=2, ensure_ascii=False)}\n\n"
         "# TASK\n"
         f"Write the Instagram/Reels caption. Maximum {rules['max_chars']} characters "
-        f"total. The first line is at most {rules['first_line_max_chars']} characters "
-        "and must stand on its own, because that is all most people see before the "
-        "'more' truncation.\n\n"
+        f"total. The opening hook must be at most {rules['first_line_max_chars']} "
+        "characters and must stand on its own, because that is all most people see "
+        "before the 'more' truncation.\n\n"
+        "The \"caption\" field's text is truncated at its FIRST newline character — "
+        "that literal newline is what the platform's preview cuts at, not a sentence "
+        "or clause boundary. So: write the hook, then immediately put a '\\n' (a "
+        "real line break, not a period or ellipsis) before continuing into the rest "
+        f"of the caption. If the hook alone is already within "
+        f"{rules['first_line_max_chars']} characters but you keep writing past it on "
+        "the same line with no break, the validator sees your whole run-on paragraph "
+        "as 'the first line' and rejects it — so the newline placement matters more "
+        "than the hook's wording.\n\n"
         f"A call to action is required. Emoji: {brand.raw['language']['emoji']['caption']}. "
         "Do not put hashtags in the caption — they are generated separately.\n\n"
         "# JSON KEYS\n"
-        '{"caption": str (full caption incl. the first line), "first_line": str, '
+        '{"caption": str (full caption, hook + "\\n" + the rest), "first_line": str '
+        "(must equal the caption's text up to that first newline), "
         '"cta": str, "char_count": number}'
         f"{revision_directive(state.get('revision'))}"
     )
@@ -204,8 +216,6 @@ def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 
 # --- Hashtags ----------------------------------------------------------------
-
-HASHTAG_KEYS = ("hashtags",)
 
 
 def hashtags_prompt(state: dict[str, Any]) -> tuple[str, str]:
@@ -234,8 +244,6 @@ def hashtags_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 
 # --- Video plan --------------------------------------------------------------
-
-VIDEO_PLAN_KEYS = ("scenes",)
 
 
 def video_plan_prompt(state: dict[str, Any]) -> tuple[str, str]:

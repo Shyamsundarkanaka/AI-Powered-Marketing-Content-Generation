@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 import shutil
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlsplit
 
 from config.settings import OUTPUT_DIR
 from database.connection import connection_scope
@@ -13,19 +15,61 @@ from database.models import Job, LogEntry, Output, Product, ScrapedData, Version
 
 logger = logging.getLogger(__name__)
 
+_SLUG_SEPARATORS = re.compile(r"[^a-z0-9]+")
 
-def _slugify(name: str) -> str:
-    return "".join(c.lower() if c.isalnum() else "-" for c in name).strip("-")
+
+class InvalidProductError(ValueError):
+    """The product name or URL isn't usable."""
+
+
+def slugify(name: str) -> str:
+    """A filesystem-safe directory name for a product.
+
+    Falls back to "product" rather than returning an empty string: a name of
+    only non-ASCII characters would otherwise collapse to `""` and every such
+    product would share one output directory.
+    """
+    slug = _SLUG_SEPARATORS.sub("-", name.strip().lower()).strip("-")
+    return slug or "product"
+
+
+def _unique_output_dir(slug: str, conn) -> str:
+    """`output/<slug>`, suffixed if another product already claimed it.
+
+    Two products can legitimately share a name (a store's "Classic 6.5" in two
+    collections); they must never share an output directory, or approving one
+    version would show the other's video.
+    """
+    base = OUTPUT_DIR / slug
+    taken = {row["output_dir"] for row in conn.execute("SELECT output_dir FROM products")}
+    candidate = str(base)
+    suffix = 2
+    while candidate in taken:
+        candidate = str(base.with_name(f"{slug}-{suffix}"))
+        suffix += 1
+    return candidate
 
 
 # --- Products ----------------------------------------------------------------
 
 def create_product(name: str, url: str) -> Product:
     """Add a new product from just a name and a source URL."""
-    output_dir = str(OUTPUT_DIR / _slugify(name))
+    name = (name or "").strip()
+    url = (url or "").strip()
+    if not name:
+        raise InvalidProductError("Product name is required.")
+
+    parsed = urlsplit(url)
+    if parsed.scheme not in ("http", "https") or not parsed.netloc:
+        raise InvalidProductError(
+            f"{url!r} is not a valid product URL — it must start with http:// or https://"
+        )
+
     with connection_scope() as conn:
+        output_dir = _unique_output_dir(slugify(name), conn)
         cursor = conn.execute(
-            "INSERT INTO products (name, url, output_dir) VALUES (?, ?, ?)",
+            "INSERT INTO products (name, url, output_dir, created_at, updated_at) "
+            "VALUES (?, ?, ?, datetime('now', 'localtime'), datetime('now', 'localtime'))",
             (name, url, output_dir),
         )
         product_id = cursor.lastrowid
@@ -55,19 +99,10 @@ def count_rejections_by_product() -> dict[int, int]:
     return {row["product_id"]: row["n"] for row in rows}
 
 
-def count_rejections_for_product(product_id: int) -> int:
-    with connection_scope() as conn:
-        row = conn.execute(
-            "SELECT COUNT(*) FROM versions WHERE product_id = ? AND status = 'Rejected'",
-            (product_id,),
-        ).fetchone()
-    return row[0]
-
-
 def update_product_status(product_id: int, status: str) -> None:
     with connection_scope() as conn:
         conn.execute(
-            "UPDATE products SET status = ?, updated_at = datetime('now') WHERE id = ?",
+            "UPDATE products SET status = ?, updated_at = datetime('now', 'localtime') WHERE id = ?",
             (status, product_id),
         )
     logger.info("Product %s status -> %s", product_id, status)
@@ -76,7 +111,7 @@ def update_product_status(product_id: int, status: str) -> None:
 def update_product_name(product_id: int, name: str) -> None:
     with connection_scope() as conn:
         conn.execute(
-            "UPDATE products SET name = ?, updated_at = datetime('now') WHERE id = ?",
+            "UPDATE products SET name = ?, updated_at = datetime('now', 'localtime') WHERE id = ?",
             (name, product_id),
         )
     logger.info("Product %s name -> %s", product_id, name)
@@ -111,7 +146,7 @@ def create_job(product_id: int) -> Job:
     """Queue a background job for a product and flip it to Pending/Running intake."""
     with connection_scope() as conn:
         cursor = conn.execute(
-            "INSERT INTO jobs (product_id) VALUES (?)",
+            "INSERT INTO jobs (product_id, created_at) VALUES (?, datetime('now', 'localtime'))",
             (product_id,),
         )
         job_id = cursor.lastrowid
@@ -133,12 +168,13 @@ def update_job_status(job_id: int, status: str, error_message: Optional[str] = N
     with connection_scope() as conn:
         if status == "Running":
             conn.execute(
-                "UPDATE jobs SET status = ?, started_at = datetime('now') WHERE id = ?",
+                "UPDATE jobs SET status = ?, started_at = datetime('now', 'localtime') WHERE id = ?",
                 (status, job_id),
             )
         elif status in ("Completed", "Failed", "Cancelled"):
             conn.execute(
-                "UPDATE jobs SET status = ?, error_message = ?, completed_at = datetime('now') WHERE id = ?",
+                "UPDATE jobs SET status = ?, error_message = ?, "
+                "completed_at = datetime('now', 'localtime') WHERE id = ?",
                 (status, error_message, job_id),
             )
         else:
@@ -205,7 +241,7 @@ def reclaim_stale_jobs() -> list[int]:
         conn.execute(
             """UPDATE jobs SET status = 'Failed',
                    error_message = 'Worker restarted while this job was running',
-                   completed_at = datetime('now')
+                   completed_at = datetime('now', 'localtime')
                WHERE status = 'Running'"""
         )
     product_ids = [row["product_id"] for row in rows]
@@ -241,8 +277,9 @@ def create_version(product_id: int, job_id: Optional[int], reviewer_feedback: Op
         ).fetchone()
         output_dir = f"{product_row['output_dir']}/v{next_number}"
         cursor = conn.execute(
-            """INSERT INTO versions (product_id, job_id, version_number, reviewer_feedback, output_dir)
-               VALUES (?, ?, ?, ?, ?)""",
+            """INSERT INTO versions
+                   (product_id, job_id, version_number, reviewer_feedback, output_dir, created_at)
+               VALUES (?, ?, ?, ?, ?, datetime('now', 'localtime'))""",
             (product_id, job_id, next_number, reviewer_feedback, output_dir),
         )
         version_id = cursor.lastrowid
@@ -266,16 +303,8 @@ def next_version_number(product_id: int) -> int:
     return row[0]
 
 
-def get_latest_version(product_id: int) -> Optional[Version]:
-    with connection_scope() as conn:
-        row = conn.execute(
-            "SELECT * FROM versions WHERE product_id = ? ORDER BY version_number DESC LIMIT 1",
-            (product_id,),
-        ).fetchone()
-    return Version.from_row(row) if row else None
-
-
 def list_versions_for_product(product_id: int) -> list[Version]:
+    """Newest first. Callers rely on `[0]` being the current version."""
     with connection_scope() as conn:
         rows = conn.execute(
             "SELECT * FROM versions WHERE product_id = ? ORDER BY version_number DESC",
@@ -284,13 +313,22 @@ def list_versions_for_product(product_id: int) -> list[Version]:
     return [Version.from_row(row) for row in rows]
 
 
-def update_version_status(version_id: int, status: str, reviewer_feedback: Optional[str] = None) -> None:
+def update_version_status(
+    version_id: int,
+    status: str,
+    reviewer_feedback: Optional[str] = None,
+    feedback_scope: Optional[str] = None,
+) -> None:
+    """`feedback_scope` is a comma-separated subset of NODE_KEYS the feedback
+    targets (e.g. "caption,hashtags"). None/empty means "everything" — the
+    next run regenerates the full pipeline, same as before this column existed.
+    """
     with connection_scope() as conn:
         conn.execute(
-            "UPDATE versions SET status = ?, reviewer_feedback = ? WHERE id = ?",
-            (status, reviewer_feedback, version_id),
+            "UPDATE versions SET status = ?, reviewer_feedback = ?, feedback_scope = ? WHERE id = ?",
+            (status, reviewer_feedback, feedback_scope, version_id),
         )
-    logger.info("Version %s status -> %s", version_id, status)
+    logger.info("Version %s status -> %s (scope=%s)", version_id, status, feedback_scope or "all")
 
 
 # --- Outputs ----------------------------------------------------------------
@@ -298,7 +336,8 @@ def update_version_status(version_id: int, status: str, reviewer_feedback: Optio
 def add_output(version_id: int, output_type: str, file_path: str) -> Output:
     with connection_scope() as conn:
         cursor = conn.execute(
-            "INSERT INTO outputs (version_id, output_type, file_path) VALUES (?, ?, ?)",
+            "INSERT INTO outputs (version_id, output_type, file_path, created_at) "
+            "VALUES (?, ?, ?, datetime('now', 'localtime'))",
             (version_id, output_type, file_path),
         )
         output_id = cursor.lastrowid
@@ -332,7 +371,7 @@ def upsert_scraped_data(
             """INSERT INTO scraped_data
                    (product_id, title, description_html, description_text,
                     price, compare_at_price, image_urls, specs, scraped_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))
                ON CONFLICT(product_id) DO UPDATE SET
                    title = excluded.title,
                    description_html = excluded.description_html,
@@ -368,7 +407,8 @@ def add_log(message: str, product_id: Optional[int] = None, job_id: Optional[int
             level: str = "INFO") -> LogEntry:
     with connection_scope() as conn:
         cursor = conn.execute(
-            "INSERT INTO logs (product_id, job_id, level, message) VALUES (?, ?, ?, ?)",
+            "INSERT INTO logs (product_id, job_id, level, message, created_at) "
+            "VALUES (?, ?, ?, ?, datetime('now', 'localtime'))",
             (product_id, job_id, level, message),
         )
         log_id = cursor.lastrowid

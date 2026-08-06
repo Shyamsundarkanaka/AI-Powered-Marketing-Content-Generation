@@ -10,8 +10,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 
+from config.logging_setup import configure_logging
 from database.connection import init_db
 from database.repository import (
+    InvalidProductError,
     count_active_jobs,
     count_rejections_by_product,
     create_job,
@@ -27,8 +29,11 @@ from database.repository import (
 from streamlit_app._shared import (
     STAGE_LABELS,
     centered_title,
+    colored_button,
     hide_sidebar,
+    inject_action_button_css,
     inject_spinner_css,
+    llm_configuration_banner,
     running_badge,
     stage_progress,
     tighten_top_padding,
@@ -39,28 +44,59 @@ st.set_page_config(page_title="Dashboard", page_icon="\U0001F4E6", layout="wide"
 hide_sidebar()
 tighten_top_padding()
 inject_spinner_css()
+inject_action_button_css()
+st.markdown(
+    # Streamlit 1.38 has no way to attach a CSS class to a specific
+    # st.container() call, so this reuses the marker + `:has()`/adjacent-
+    # sibling trick from colored_button() (see inject_action_button_css) to
+    # reach the delete-confirmation container and cap its width — otherwise
+    # it stretches full-width on this page's wide layout and barely stands
+    # out from the page background.
+    "<style>"
+    "div[data-testid='element-container']:has(> div .box-marker) { display: none; }"
+    "div[data-testid='element-container']:has(> div .box-marker-delete-confirm)"
+    " + div[data-testid='element-container'] {"
+    "  max-width: 480px;"
+    "  margin: 1rem auto;"
+    "  padding: 0.25rem 0.5rem;"
+    "  border-radius: 0.5rem;"
+    "  background-color: rgba(255, 90, 90, 0.12);"
+    "  border: 1px solid rgba(255, 90, 90, 0.4);"
+    "}"
+    "</style>",
+    unsafe_allow_html=True,
+)
 
+configure_logging()
 init_db()
 ensure_worker_running()
 
 centered_title("Dashboard")
 st.caption("Control center for product intake, pipeline runs and review.")
 
+# A missing or invalid API key makes every run fail eight nodes deep. Say so
+# here, once, at the top — not one failed job at a time.
+llm_configuration_banner()
+
 with st.expander("➕ Add Product", expanded=False):
+    st.caption(
+        "Any public Shopify product URL. The product page is re-scraped at the "
+        "start of every run, so the name below is only a placeholder until then."
+    )
     with st.form("add_product_form", clear_on_submit=True):
         name = st.text_input("Product name")
-        url = st.text_input("Product URL")
+        url = st.text_input("Product URL", placeholder="https://…/products/…")
         submitted = st.form_submit_button("Add Product")
     if submitted:
-        if not name.strip() or not url.strip():
-            st.error("Both product name and URL are required.")
+        try:
+            product = create_product(name, url)
+        except InvalidProductError as exc:
+            st.error(str(exc))
+        except sqlite3.IntegrityError:
+            st.error("A product with this URL already exists.")
         else:
-            try:
-                product = create_product(name.strip(), url.strip())
-                st.success(f"Added '{product.name}' as product #{product.id}.")
-                st.rerun()
-            except sqlite3.IntegrityError:
-                st.error("A product with this URL already exists.")
+            st.success(f"Added '{product.name}' as product #{product.id}.")
+            st.rerun()
 
 st.divider()
 
@@ -113,6 +149,7 @@ else:
         if confirm_product is None:
             st.session_state.pop("confirm_delete_id", None)
         else:
+            st.markdown("<span class='box-marker box-marker-delete-confirm'></span>", unsafe_allow_html=True)
             with st.container(border=True):
                 st.warning(
                     f"⚠️ Delete **{confirm_product.name}** (#{confirm_product.id})? This "
@@ -121,8 +158,12 @@ else:
                     f"captions, hashtags — all versions). This cannot be undone."
                 )
                 confirm_col, cancel_col = st.columns(2)
-                if confirm_col.button(
-                    "🗑️ Yes, delete permanently", key="confirm_delete_yes", use_container_width=True
+                if colored_button(
+                    confirm_col,
+                    "🗑️ Yes, delete permanently",
+                    key="confirm_delete_yes",
+                    marker="delete",
+                    use_container_width=True,
                 ):
                     delete_product_with_files(confirm_delete_id)
                     st.session_state.pop("confirm_delete_id", None)
@@ -180,7 +221,9 @@ else:
                 st.info(f"Cancel requested for product #{p.id}.")
                 st.rerun()
         elif p.status == "Approved":
-            action_col.markdown(f"[✅ View Output →](Output?product_id={p.id})")
+            if action_col.button("✅ View Output", key=f"view_{p.id}", use_container_width=True):
+                st.session_state["review_product_id"] = p.id
+                st.switch_page("pages/1_Output.py")
         elif p.status in RUNNABLE_STATUSES:
             label = "▶️ Run" if p.status == "Pending" else "🔁 Retry"
             if action_col.button(
@@ -198,12 +241,16 @@ else:
             # Covers "Review" and the rare transient "Rejected" (which flips
             # back to Pending the moment feedback is submitted) — both just
             # need a way into the same Output tab to see the latest version.
-            action_col.markdown(f"[📝 Review →](Output?product_id={p.id})")
+            if action_col.button("📝 Review", key=f"review_{p.id}", use_container_width=True):
+                st.session_state["review_product_id"] = p.id
+                st.switch_page("pages/1_Output.py")
 
         delete_col = row[6]
-        if delete_col.button(
+        if colored_button(
+            delete_col,
             "🗑️",
             key=f"delete_{p.id}",
+            marker="delete",
             use_container_width=True,
             disabled=p.status == "Running",
             help="Delete this product, its jobs/versions and all generated files",

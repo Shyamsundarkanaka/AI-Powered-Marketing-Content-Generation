@@ -28,6 +28,7 @@ from langgraph.graph import END, START, StateGraph
 
 from database.repository import is_cancel_requested, update_job_stage
 from graph import nodes
+from graph.llm import LLMConfigurationError, LLMError, check_configuration
 from graph.state import PipelineState, new_state
 
 logger = logging.getLogger(__name__)
@@ -101,41 +102,49 @@ class PipelineError(RuntimeError):
 def run_pipeline(product_id: int, job_id: Optional[int] = None) -> dict[str, Any]:
     """Generate one complete content version for a product.
 
-    Raises `PipelineError` only when nothing could be produced — a missing
-    product or missing scraped data. Individual node failures (no API key, a
-    render error) degrade the version instead: the run still finishes, the
-    artifacts still exist, and the provenance says what happened.
+    Raises `PipelineError` when no reviewable version could be produced: a
+    missing product, missing scraped data, or an agent that could not generate
+    valid content. There is no degraded-but-published outcome for the copy
+    nodes — a version exists only if every piece of its copy was really
+    generated. A failed *render* is the one exception, because the copy is
+    still valid and complete without it (see `nodes.render_video`).
+
+    Any incomplete version directory left by the failure is removed, so the
+    output tree only ever contains versions a reviewer can open.
     """
+    check_configuration()
     graph = build_graph()
     logger.info("Running content pipeline for product %s (job %s)", product_id, job_id)
 
     # recursion_limit is LangGraph's superstep cap; this graph is a DAG with a
     # fixed depth of 7, so the default would do — it is set explicitly so a
     # future cycle (e.g. a self-critique loop) fails loudly rather than hanging.
-    final_state: PipelineState = graph.invoke(
-        new_state(product_id, job_id), config={"recursion_limit": 25}
-    )
+    try:
+        final_state: PipelineState = graph.invoke(
+            new_state(product_id, job_id), config={"recursion_limit": 25}
+        )
+    except LLMError as exc:
+        nodes.discard_orphan_version_dirs(product_id)
+        raise PipelineError(str(exc)) from exc
+    except PipelineCancelled:
+        nodes.discard_orphan_version_dirs(product_id)
+        raise
 
     if final_state.get("failed"):
+        nodes.discard_orphan_version_dirs(product_id)
         raise PipelineError(final_state.get("failure_reason", "pipeline failed"))
 
-    sources = final_state.get("sources") or {}
-    stubbed = sorted(node for node, source in sources.items() if source == "stub")
-    if stubbed:
-        logger.warning(
-            "v%s produced with stub content for: %s",
-            final_state.get("version_number"),
-            ", ".join(stubbed),
-        )
+    warnings = final_state.get("warnings") or []
+    for warning in warnings:
+        logger.warning("v%s: %s", final_state.get("version_number"), warning)
 
     return {
         "version_id": final_state["version_id"],
         "version_number": final_state["version_number"],
         "output_dir": final_state["output_dir"],
         "artifact_count": len(final_state.get("artifacts") or []),
-        "sources": sources,
-        "stubbed_nodes": stubbed,
-        "errors": final_state.get("errors") or [],
+        "sources": final_state.get("sources") or {},
+        "warnings": warnings,
     }
 
 
@@ -143,21 +152,28 @@ def main() -> None:
     """Run the pipeline for one product without the worker: `python -m graph.pipeline 5`."""
     import argparse
 
+    from config.logging_setup import configure_logging
     from database.connection import init_db
 
     parser = argparse.ArgumentParser(description="Run the content pipeline for one product.")
     parser.add_argument("product_id", type=int)
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    configure_logging()
     init_db()
-    result = run_pipeline(args.product_id)
+    try:
+        result = run_pipeline(args.product_id)
+    except LLMConfigurationError as exc:
+        raise SystemExit(f"Not configured: {exc}") from None
+    except PipelineError as exc:
+        raise SystemExit(f"Pipeline failed: {exc}") from None
+
     print(
         f"v{result['version_number']} -> {result['output_dir']} "
         f"({result['artifact_count']} artifacts)"
     )
-    if result["stubbed_nodes"]:
-        print(f"  stubbed: {', '.join(result['stubbed_nodes'])}")
+    for warning in result["warnings"]:
+        print(f"  warning: {warning}")
 
 
 if __name__ == "__main__":

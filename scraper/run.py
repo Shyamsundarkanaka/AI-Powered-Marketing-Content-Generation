@@ -1,11 +1,10 @@
-"""Standalone CLI to scrape one or all products and store results in scraped_data.
+"""Scrape one or all products and store the results in `scraped_data`.
 
-Usage (from project root):
+The worker calls `scrape_and_store()` as the first stage of every job. The CLI
+is for re-scraping without running a full generation:
+
     python -m scraper.run --product-id 5
     python -m scraper.run --all
-
-This is a manual entry point until the background worker exists; the worker
-will eventually call `scrape_and_store` directly per job instead.
 """
 from __future__ import annotations
 
@@ -20,9 +19,8 @@ from database.repository import (
     update_product_name,
     upsert_scraped_data,
 )
-from scraper.radboards import ScrapeError, scrape_product
+from scraper.shopify import ScrapeError, scrape_product
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -62,16 +60,22 @@ def scrape_and_store(product_id: int, job_id: int | None = None) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Scrape Radboards product pages.")
+    from config.logging_setup import configure_logging
+
+    parser = argparse.ArgumentParser(description="Scrape Shopify product pages.")
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--product-id", type=int, help="Scrape a single product by id.")
     group.add_argument("--all", action="store_true", help="Scrape every product in the database.")
     args = parser.parse_args()
 
+    configure_logging()
     init_db()
 
     if args.product_id is not None:
-        scrape_and_store(args.product_id)
+        try:
+            scrape_and_store(args.product_id)
+        except (ScrapeError, ValueError) as exc:
+            raise SystemExit(f"Scrape failed: {exc}") from None
         return
 
     products = list_products()
@@ -84,6 +88,8 @@ def main() -> None:
             failures += 1
             logger.error("Product %s failed: %s", product.id, exc)
     logger.info("Done: %d/%d succeeded", len(products) - failures, len(products))
+    if failures:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

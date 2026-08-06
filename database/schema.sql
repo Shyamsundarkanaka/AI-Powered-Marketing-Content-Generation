@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS products (
                         CHECK (status IN ('Pending', 'Running', 'Review', 'Approved',
                                            'Rejected', 'Failed', 'Cancelled')),
     output_dir      TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
-    updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    updated_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS jobs (
@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     error_message   TEXT,
     current_stage   TEXT,
     cancel_requested INTEGER NOT NULL DEFAULT 0,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     started_at      TEXT,
     completed_at    TEXT
 );
@@ -36,8 +36,9 @@ CREATE TABLE IF NOT EXISTS versions (
     status              TEXT NOT NULL DEFAULT 'Review'
                             CHECK (status IN ('Review', 'Approved', 'Rejected')),
     reviewer_feedback   TEXT,
+    feedback_scope      TEXT,
     output_dir          TEXT NOT NULL,
-    created_at          TEXT NOT NULL DEFAULT (datetime('now')),
+    created_at          TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     UNIQUE (product_id, version_number)
 );
 
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS outputs (
                         CHECK (output_type IN ('campaign_brief', 'script', 'caption', 'hashtags',
                                                 'voiceover', 'video_plan', 'video')),
     file_path       TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS scraped_data (
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS scraped_data (
     compare_at_price    REAL,
     image_urls          TEXT NOT NULL DEFAULT '[]',
     specs               TEXT NOT NULL DEFAULT '{}',
-    scraped_at          TEXT NOT NULL DEFAULT (datetime('now'))
+    scraped_at          TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE TABLE IF NOT EXISTS logs (
@@ -71,7 +72,7 @@ CREATE TABLE IF NOT EXISTS logs (
     level           TEXT NOT NULL DEFAULT 'INFO'
                         CHECK (level IN ('DEBUG', 'INFO', 'WARNING', 'ERROR')),
     message         TEXT NOT NULL,
-    created_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    created_at      TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_jobs_product_id ON jobs(product_id);
