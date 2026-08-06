@@ -8,8 +8,11 @@ Two things are true of every prompt here:
   told this explicitly, because the failure mode that matters most in generated
   marketing copy is a confident invented number.
 
-Each builder returns `(system, user)`. Required JSON keys live next to the
-builder so the schema and the instruction that describes it can't drift apart.
+Each builder returns `(system, user)` and ends with a `# JSON KEYS` block
+describing the shape it wants. The matching validator lives in
+`graph/schemas.py` — when you change the keys here, change it there too, since
+a response the prompt asks for but the validator rejects would loop until the
+attempt budget runs out.
 """
 from __future__ import annotations
 
@@ -98,14 +101,18 @@ def revision_directive(revision: dict[str, Any] | None) -> str:
 
 # --- Campaign brief ----------------------------------------------------------
 
-CAMPAIGN_BRIEF_KEYS = (
-    "objective",
-    "target_persona",
-    "key_message",
-    "proof_points",
-    "channels",
-    "success_metric",
-)
+
+
+def _persona_block(brand) -> str:
+    """Render each persona's id/wants/fears so the model can match a product to a
+    person by reasoning, instead of a hardcoded per-category rule living in code.
+    """
+    lines = []
+    for p in brand.personas:
+        wants = ", ".join(p.get("wants", []))
+        fears = ", ".join(p.get("fears", []))
+        lines.append(f"- {p['id']}: wants [{wants}]; fears [{fears}]")
+    return "\n".join(lines)
 
 
 def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
@@ -123,9 +130,8 @@ def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
         "Write the campaign brief for a single short-form social video promoting "
         "this product.\n\n"
         f"Choose exactly one target persona from: {', '.join(persona_ids)}. Base the "
-        "choice on the scraped product (off-road/high-wattage products lean "
-        "weekend-explorer; the cheapest classic models lean campus-rider; "
-        "everything else urban-commuter).\n\n"
+        "choice on which persona's wants and fears best fit this specific product's "
+        f"price, category and features:\n{_persona_block(brand)}\n\n"
         f"Provide at least {rules['proof_points_min']} proof points. Each proof point "
         "must quote or paraphrase a specific scraped spec, the price, or a line of "
         "the description — and name which one in `source`.\n\n"
@@ -140,8 +146,6 @@ def campaign_brief_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 
 # --- Script ------------------------------------------------------------------
-
-SCRIPT_KEYS = ("title", "beats", "estimated_duration_seconds")
 
 
 def script_prompt(state: dict[str, Any]) -> tuple[str, str]:
@@ -174,8 +178,6 @@ def script_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 # --- Caption -----------------------------------------------------------------
 
-CAPTION_KEYS = ("caption", "first_line")
-
 
 def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
     brand = load_brand()
@@ -205,8 +207,6 @@ def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 # --- Hashtags ----------------------------------------------------------------
 
-HASHTAG_KEYS = ("hashtags",)
-
 
 def hashtags_prompt(state: dict[str, Any]) -> tuple[str, str]:
     brand = load_brand()
@@ -234,8 +234,6 @@ def hashtags_prompt(state: dict[str, Any]) -> tuple[str, str]:
 
 
 # --- Video plan --------------------------------------------------------------
-
-VIDEO_PLAN_KEYS = ("scenes",)
 
 
 def video_plan_prompt(state: dict[str, Any]) -> tuple[str, str]:

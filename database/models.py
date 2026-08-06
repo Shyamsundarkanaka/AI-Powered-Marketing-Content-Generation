@@ -55,12 +55,15 @@ class Version:
     version_number: int
     status: str
     reviewer_feedback: Optional[str]
+    feedback_scope: Optional[str]
     output_dir: str
     created_at: str
 
     @classmethod
     def from_row(cls, row: sqlite3.Row) -> "Version":
-        return cls(**dict(row))
+        data = dict(row)
+        data.setdefault("feedback_scope", None)
+        return cls(**data)
 
 
 @dataclass

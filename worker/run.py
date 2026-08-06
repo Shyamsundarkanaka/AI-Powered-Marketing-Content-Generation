@@ -3,16 +3,21 @@
 Usage (from project root):
     python -m worker.run
 
-Long-lived process. A job now means: scrape the product, then run the LangGraph
+Long-lived process. One job means: scrape the product, then run the LangGraph
 content pipeline over the scraped data to produce a complete, reviewable version
 (brief, script, caption, hashtags, voiceover, video plan, rendered video).
 Ctrl+C exits cleanly.
+
+Every failure path resolves the job to a terminal status. A job stuck in
+`Running` would disable the UI's Run button for every product indefinitely, so
+"could not even mark it Failed" is handled explicitly at the bottom of the loop.
 """
 from __future__ import annotations
 
 import logging
 import time
 
+from config.logging_setup import configure_logging
 from config.settings import WORKER_POLL_INTERVAL_SECONDS
 from database.connection import init_db
 from database.models import Job
@@ -22,15 +27,15 @@ from database.repository import (
     get_next_pending_job,
     is_cancel_requested,
     reclaim_stale_jobs,
-    update_job_status,
     update_job_stage,
+    update_job_status,
     update_product_status,
 )
+from graph.llm import LLMConfigurationError, check_configuration
 from graph.pipeline import PipelineCancelled, PipelineError, run_pipeline
-from scraper.radboards import ScrapeError
 from scraper.run import scrape_and_store
+from scraper.shopify import ScrapeError
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -42,6 +47,15 @@ def process_job(job: Job) -> None:
 
     if is_cancel_requested(job.id):
         _cancel(job)
+        return
+
+    # Before anything else. Scraping first and *then* discovering there is no
+    # usable API key wastes a request to the store and reports the failure
+    # against the scrape stage, sending the reader to the wrong place.
+    try:
+        check_configuration()
+    except LLMConfigurationError as exc:
+        _fail(job, str(exc))
         return
 
     update_job_stage(job.id, "scrape")
@@ -61,12 +75,17 @@ def process_job(job: Job) -> None:
         # to Failed rather than leaving it stuck in Running forever.
         update_job_status(job.id, "Completed")
         summary = f"Job completed: v{result['version_number']} with {result['artifact_count']} artifacts"
-        if result["stubbed_nodes"]:
-            summary += f" (stub content for: {', '.join(result['stubbed_nodes'])})"
+        if result["warnings"]:
+            summary += f" ({len(result['warnings'])} warning(s))"
         add_log(summary, product_id=job.product_id, job_id=job.id)
         logger.info("Job %s: %s", job.id, summary)
     except PipelineCancelled:
         _cancel(job)
+    except LLMConfigurationError as exc:
+        # Not a crash and not the model's fault — a setting is wrong. Say that
+        # plainly, because the fix is a one-line .env edit and burying it under
+        # "unexpected pipeline error" sends the reader looking in the wrong place.
+        _fail(job, str(exc))
     except PipelineError as exc:
         _fail(job, f"Pipeline failed: {exc}")
     except Exception as exc:  # noqa: BLE001 — an unexpected crash must not kill the worker
@@ -96,7 +115,17 @@ def _cancel(job: Job) -> None:
 
 
 def main() -> None:
+    configure_logging()
     init_db()
+
+    # Surface a missing/invalid API key here, at startup, rather than letting
+    # every queued job fail one at a time eight nodes deep.
+    try:
+        check_configuration()
+    except LLMConfigurationError as exc:
+        logger.error("LLM is not configured: %s", exc)
+        logger.error("The worker will keep polling, but every job will fail until this is fixed.")
+
     reclaimed_products = reclaim_stale_jobs()
     for product_id in reclaimed_products:
         update_product_status(product_id, "Failed")

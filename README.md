@@ -1,17 +1,15 @@
 # AI-Powered Marketing Content Generation
 
-Give it a Radboards product URL. It scrapes the product, runs a LangGraph
-pipeline of Claude agents over the scraped facts, and produces a complete,
-reviewable content version — campaign brief, script, caption, hashtags,
-voiceover and a rendered 1080×1920 vertical video — then routes it through a
-human approve/reject loop where a rejection regenerates with your feedback.
+Give it a Shopify product URL. It scrapes the product, runs a LangGraph pipeline
+of agents over the scraped facts, and produces a complete, reviewable content
+version — campaign brief, script, caption, hashtags, voiceover and a rendered
+1080×1920 vertical video — then routes it through a human approve/reject loop
+where a rejection regenerates with your feedback.
 
-- Step 1: database layer and Streamlit control-center UI
-- Step 2: Radboards scraper
-- Step 3: background worker
-- Step 4: brand system, LangGraph pipeline, voiceover, video rendering, feedback loop
-
-Full architecture and decisions: [`docs/architecture/CONTEXT.md`](docs/architecture/CONTEXT.md).
+**Nothing in the output is fabricated locally.** Every piece of copy is real
+model output that passed schema validation, or the run fails and tells you why.
+There is no placeholder mode, no canned fallback copy, and no way for a reviewer
+to be shown sample text believing it was generated.
 
 ## Setup
 
@@ -24,99 +22,107 @@ copy .env.example .env
 
 No system ffmpeg needed — `imageio-ffmpeg` bundles its own binary.
 
-### The API key
+### Configure a model
 
-`ANTHROPIC_API_KEY` defaults to a **placeholder**, and that is a supported way to
-run the system. Every agent call is attempted, returns 401, and each node falls
-back to its documented stub output: realistic, brand-correct copy built from the
-product's *real* scraped data. The pipeline still completes, and the voiceover
-and video are real rendered artifacts either way.
+Put a real API key in `.env` for whichever provider you select:
 
-The Output tab shows stub content exactly as it would show a real generation —
-no badge, no warning — so the app is reviewable end to end before you ever set
-a real key. Provenance (`"_source": "stub"`, plus a `WARNING` in the `logs`
-table) is still recorded internally for debugging, just not surfaced to the
-reviewer. Put a real key in `.env` to generate for real; no code changes
-anywhere.
+```ini
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your-real-key
+```
+
+`openai` and `anthropic` are equally supported — set `LLM_PROVIDER` and fill in
+that block instead. Switching provider or model is a `.env` change only; see
+[`docs/architecture/llm-providers.md`](docs/architecture/llm-providers.md).
+
+Without a valid key the Dashboard shows a red banner and every run fails
+immediately with a clear message, rather than silently producing filler.
 
 ## Run it
 
 ```bash
-python -m database.seed_products      # once, seeds the initial products
+python -m database.seed_products      # once, seeds the starting products
 streamlit run streamlit_app/app.py    # one terminal — starts the worker too
 ```
 
 The Streamlit app starts the worker loop itself, on a background thread, the
 first time any page loads — one command runs the whole thing, and a job can
-never get stuck `Pending` because nothing was around to process it. (For a
-production-shaped deployment, run `python -m worker.run` as its own
-long-lived process instead — see its docstring.)
+never get stuck `Pending` because nothing was around to process it. For a
+production deployment, run `python -m worker.run` as its own long-lived process
+instead (see its docstring).
 
 Then in the UI: **Run** on a product → the worker scrapes it and generates a
-version → **Review** to watch the video, read the copy, and approve or
-reject. Rejecting requires feedback and automatically queues a regeneration
-that takes your feedback into account.
+version → **Review** to watch the video, read the copy, and approve or reject.
+Rejecting requires feedback and queues a regeneration that takes it into
+account. You can scope the feedback to specific parts (caption, hashtags, …) —
+anything outside the scope is carried forward unchanged instead of being
+regenerated and re-billed.
 
 ### Without the UI
 
 ```bash
-python -m scraper.run --product-id 5      # scrape one product (or --all)
-python -m graph.pipeline 5                # generate a full version for it
-python -m media.movie --product-id 5      # render just the video, standalone
-python -m media.voice --seconds 28        # generate just a voiceover track
+python -m scraper.run --product-id 1              # scrape one product (or --all)
+python -m graph.pipeline 1                        # generate a full version for it
+python -m media.movie --plan output/…/v1/video_plan.json   # re-render just the video
+python -m media.voice --text "hello there"        # test the TTS chain
+python -m database.reset                          # wipe everything, re-seed
+pytest                                            # run the test suite
 ```
 
 ## What's here
 
-**Pipeline**
-- `graph/pipeline.py` — graph topology and `run_pipeline()`. Brief → script →
+**Pipeline** — `graph/`
+- `pipeline.py` — graph topology and `run_pipeline()`. Brief → script →
   (caption ∥ hashtags ∥ video plan) → voiceover → video → finalize.
-- `graph/nodes.py` — the nine node functions.
-- `graph/prompts.py` — per-agent prompts, with the brand definition injected into
-  every one. Agents may only state facts present in the scraped data.
-- `graph/llm.py` — the single place we call Claude, and the single place we fall
-  back to a stub.
-- `graph/stubs.py` — the documented fallback output for each node.
-- `graph/state.py` — pipeline state and the reducers that make the fan-out safe.
+- `nodes.py` — the nine node functions, plus feedback scoping and carry-forward.
+- `prompts.py` — per-agent prompts, with the brand definition injected into every
+  one. Agents may only state facts present in the scraped data.
+- `schemas.py` — validates and normalizes every model response. Fixable problems
+  are corrected locally; the rest are sent back to the model with the reason.
+- `llm.py` — the one place the system talks to a model, and the one place it
+  gives up. Provider registry, hardened JSON extraction, repair-retry.
+- `state.py` — pipeline state and the reducers that make the fan-out safe.
 
 **Brand** — `brand/`
-- `brand.yaml` is the machine-readable source of truth: voice, banned
-  vocabulary, personas, language rules, per-artifact content rules, compliance
-  guardrails, palette, typography, safe areas, motion.
-- It has two consumers: every agent prompt, and the video renderer. Changing a
-  hex value or a content rule there changes the output with no code edit.
-- `BRAND_GUIDELINES.md`, `PERSONAS.md`, `VISUAL_IDENTITY.md`, `COMPLIANCE.md`
-  carry the reasoning behind it.
+- `brand.yaml` — machine-readable source of truth: voice, personas, content
+  rules, compliance, palette, typography, video geometry. Every agent prompt and
+  every rendered frame is built from it.
+- `loader.py` — parses it, validates it against everything the code reads, and
+  exposes the derived views the prompts and the renderer need.
+- `generate.py` — regenerate the whole brand folder from any live Shopify store:
+  `python -m brand.generate https://store.example.com`.
+- The four `.md` files explain the *why*; `brand.yaml` is what the code parses.
 
-**Media**
-- `media/movie.py` — the renderer. 1080×1920 vertical (square/landscape also
-  supported), Ken Burns with eased camera moves, white-backdrop cutout so the
-  product floats rather than sitting in a pasted rectangle, branded type with
-  drop shadows and spec pills, cross-dissolves, progress bar, H.264/AAC out.
-- `media/voice.py` — voiceover. No TTS provider is wired up, so the default is
-  silence of exactly the script's estimated spoken length: video timing is
-  already correct and a real narration WAV of the same length drops straight in.
+**Media** — `media/`
+- `movie.py` — the renderer. One `VideoClip` with a hand-written frame function:
+  eased Ken Burns moves, white-backdrop product cutouts with contact shadows,
+  Pillow-drawn text with real letter-spacing, cross-dissolves, progress bar.
+- `voice.py` — voiceover over a pluggable TTS engine chain, falling back to a
+  correctly-timed silent track that the review UI flags prominently.
 
-**Everything else**
-- `config/settings.py` — environment-driven config; paths anchored to the
-  project root, not the cwd.
-- `database/` — SQLite schema, typed models, and all CRUD. Source of truth for
-  products, jobs, versions, outputs, scraped data and logs.
-- `scraper/radboards.py` — scrapes a product's Shopify `.json` endpoint.
-- `worker/run.py` — polls the job queue; each job scrapes then runs the pipeline.
-- `streamlit_app/` — control center. Never calls a model.
+**Plumbing**
+- `scraper/shopify.py` — parses any public Shopify product `.json` endpoint.
+- `database/` — 6-table SQLite schema, repository, seed and reset scripts.
+- `worker/` — the job queue loop; `autostart.py` runs it inside Streamlit.
+- `config/` — validated settings, shared retrying HTTP session, logging setup.
+- `tests/` — 166 tests, no network and no API key required.
 
-## How it hangs together
+Full architecture and the decisions behind it:
+[`docs/architecture/CONTEXT.md`](docs/architecture/CONTEXT.md).
 
-- **SQLite is the only source of truth.** No second persistence layer.
-- **Streamlit never performs inference.** It reads and writes the database and
-  renders files. All generation happens in the worker process.
-- **One product at a time**, single worker, jobs processed in creation order.
-- **Versions are immutable.** A rejection never overwrites — it creates a new
-  version, and the reviewer's feedback plus the previous copy are injected into
-  every agent prompt for that next attempt.
-- **Agents may only use scraped facts.** They are handed the `scraped_data` row
-  and nothing else about the product, so an invented spec has nowhere to come
-  from.
+## How failure is handled
 
-Product lifecycle: `Pending → Running → Review → Approved | Rejected | Failed | Cancelled`.
+The rule is that a reviewer must never be shown something misleading.
+
+| What broke | What happens |
+|---|---|
+| No/invalid API key | Banner on the Dashboard; runs fail immediately, naming the setting |
+| Model returns malformed JSON | Retried up to `LLM_JSON_ATTEMPTS` with the parse error fed back |
+| Model returns valid JSON, wrong shape | Same retry, with the specific schema violation quoted |
+| Still wrong after all attempts | Job fails, product marked `Failed`, error shown in the UI |
+| Scrape fails | Job fails before any model call is billed |
+| Video render fails | Version is still created — the copy is real and complete — with the error recorded |
+| TTS unavailable | Silent track of the correct length; flagged loudly in the review UI |
+
+A failed run leaves no version row and no half-written output directory: the
+next run for that product cleans up whatever the failure left behind.

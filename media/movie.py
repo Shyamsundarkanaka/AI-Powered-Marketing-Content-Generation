@@ -34,17 +34,20 @@ import hashlib
 import logging
 import math
 import os
+import wave
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable, Optional, Sequence
 
 import numpy as np
-import requests
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-from brand.loader import Brand, hex_to_rgb, hex_to_rgba, load_brand
+from brand.loader import Brand, hex_to_rgba, load_brand
+from config.http import http_session
+from media import voice
 from config.settings import (
     ASSET_CACHE_DIR,
+    HTTP_TIMEOUT_SECONDS,
     VIDEO_ASPECT,
     VIDEO_FPS,
     VIDEO_RENDER_THREADS,
@@ -69,8 +72,6 @@ FONT_SEARCH_DIRS = (
     Path.home() / ".fonts",
 )
 
-IMAGE_TIMEOUT_SECONDS = 20
-IMAGE_USER_AGENT = "Mozilla/5.0 (compatible; RadboardsContentBot/1.0)"
 MIN_SCENE_SECONDS = 1.2
 PILL_HEIGHT = 100          # tall enough for an accent label above a display value
 AUDIO_TOLERANCE_SECONDS = 0.05
@@ -362,11 +363,13 @@ class ImageLibrary:
         if path.exists() and path.stat().st_size > 0:
             return path
         try:
-            response = requests.get(
-                url, headers={"User-Agent": IMAGE_USER_AGENT}, timeout=IMAGE_TIMEOUT_SECONDS
-            )
+            response = http_session().get(url, timeout=HTTP_TIMEOUT_SECONDS)
             response.raise_for_status()
-            path.write_bytes(response.content)
+            # Write via a temp file so an interrupted download can never leave a
+            # truncated image in the cache, where it would be served forever.
+            scratch = path.with_suffix(path.suffix + ".part")
+            scratch.write_bytes(response.content)
+            scratch.replace(path)
             logger.info("Cached product image %s", path.name)
             return path
         except Exception as exc:  # noqa: BLE001 — a missing image degrades, never fails
@@ -872,6 +875,47 @@ def _conform_audio(audio_path: Path, duration: float, warnings: list[str]):
     return audio
 
 
+def _wav_duration_seconds(path: Path) -> Optional[float]:
+    """The voiceover's real duration, or None if it can't be read."""
+    try:
+        return voice.wav_duration_seconds(path)
+    except (OSError, wave.Error, voice.TTSUnavailable) as exc:
+        logger.warning("Could not read voiceover duration from %s: %s", path, exc)
+        return None
+
+
+def scale_scenes_to_audio(scenes: list[Scene], target_duration: float, transition: float) -> None:
+    """Stretch/compress every scene's duration so the timeline lands on `target_duration`.
+
+    The video plan's scene durations are only ever an estimate of how long the
+    script *will* take to speak (the `words_per_second` heuristic). Real TTS
+    rarely matches that estimate exactly — Piper spoke a measured 25.8s script
+    in 19.6s in testing. Rather than padding/trimming the *audio* to
+    fit a guessed-at video length (which either freezes on a dead frame or
+    chops off narration), the scenes are rescaled to fit the *real* narration
+    length, so every frame of the video is proportionally aligned to the
+    audio actually being played. Mutates `scenes` in place.
+    """
+    if not scenes or target_duration <= 0:
+        return
+    n = len(scenes)
+    overlap = transition * (n - 1) if n > 1 else 0.0
+    planned = sum(s.duration for s in scenes) - overlap
+    if planned <= 0:
+        return
+
+    factor = (target_duration + overlap) / (planned + overlap)
+    for scene in scenes:
+        scene.duration = max(scene.duration * factor, MIN_SCENE_SECONDS)
+
+    # The floor above (and the fixed, unscaled transition overlap) means the
+    # scaled total can drift a little from the target; absorb that drift into
+    # the last scene so the timeline lands on the audio's duration exactly.
+    achieved = sum(s.duration for s in scenes) - overlap
+    residual = target_duration - achieved
+    scenes[-1].duration = max(scenes[-1].duration + residual, MIN_SCENE_SECONDS)
+
+
 def build_scenes(video_plan: dict[str, Any], brand: Brand) -> list[Scene]:
     """Plan JSON -> validated scenes, with a usable fallback if the plan is empty."""
     raw_scenes: Iterable[dict[str, Any]] = video_plan.get("scenes") or []
@@ -912,19 +956,26 @@ def render_video(
     images = ImageLibrary(image_urls)
     ctx = RenderContext(brand, images, aspect)
     scenes = build_scenes(video_plan, brand)
+    transition_seconds = float(brand.video["transition_seconds"])
+
+    warnings = list(images.warnings)
+    voiceover_exists = bool(voiceover_path) and Path(voiceover_path).exists()
+    audio_duration = _wav_duration_seconds(Path(voiceover_path)) if voiceover_exists else None
+    if audio_duration:
+        scale_scenes_to_audio(scenes, audio_duration, transition_seconds)
+    elif voiceover_exists:
+        warnings.append("Could not read voiceover duration; scene timing follows the video plan only.")
 
     logger.info(
         "Rendering %d scenes at %dx%d/%dfps from %d source image(s)",
         len(scenes), ctx.width, ctx.height, fps, len(images),
     )
     renderers = [SceneRenderer(scene, ctx) for scene in scenes]
-    timeline = Timeline(renderers, ctx, float(brand.video["transition_seconds"]))
-
-    warnings = list(images.warnings)
+    timeline = Timeline(renderers, ctx, transition_seconds)
     clip = VideoClip(frame_function=timeline.frame, duration=timeline.duration)
     audio_clip = None
 
-    if voiceover_path and Path(voiceover_path).exists():
+    if voiceover_exists:
         try:
             audio_clip = _conform_audio(Path(voiceover_path), timeline.duration, warnings)
             clip = clip.with_audio(audio_clip)
@@ -963,52 +1014,55 @@ def render_video(
 
 
 def main() -> None:
-    """Standalone render straight from a product's scraped data.
+    """Re-render a video from a plan a pipeline run already produced.
 
-        python -m media.movie --product-id 5 --out output/demo.mp4
+        python -m media.movie --plan output/8-5-off-road-pro/v1/video_plan.json
 
-    Uses the stub video plan, so it exercises the full renderer without needing
-    an API key or a worker.
+    Useful when iterating on the renderer itself: it exercises every code path
+    the pipeline does — real plan, real photography, real voiceover if one sits
+    beside the plan — without spending a single model call.
     """
     import argparse
+    import json
 
-    from database.repository import get_product, get_scraped_data
-    from graph import stubs
+    from config.logging_setup import configure_logging
+    from database.repository import get_scraped_data
 
-    parser = argparse.ArgumentParser(description="Render a product video standalone.")
-    parser.add_argument("--product-id", type=int, required=True)
-    parser.add_argument("--out", type=Path, default=Path("output/demo.mp4"))
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    parser.add_argument("--plan", type=Path, required=True, help="Path to a video_plan.json")
+    parser.add_argument(
+        "--product-id",
+        type=int,
+        help="Product whose scraped images to render with. Defaults to the "
+        "product_id recorded in the plan directory's _meta.json.",
+    )
+    parser.add_argument("--out", type=Path, default=None)
     parser.add_argument("--aspect", choices=sorted(ASPECT_PRESETS), default=None)
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+    configure_logging()
 
-    product = get_product(args.product_id)
-    if product is None:
-        raise SystemExit(f"No product with id {args.product_id}")
-    scraped = get_scraped_data(args.product_id)
+    if not args.plan.is_file():
+        raise SystemExit(f"No video plan at {args.plan}")
+    plan = json.loads(args.plan.read_text(encoding="utf-8"))
+
+    product_id = args.product_id
+    meta_path = args.plan.parent / "_meta.json"
+    if product_id is None and meta_path.is_file():
+        product_id = json.loads(meta_path.read_text(encoding="utf-8")).get("product_id")
+    if product_id is None:
+        raise SystemExit("Could not determine the product; pass --product-id.")
+
+    scraped = get_scraped_data(product_id)
     if scraped is None:
-        raise SystemExit(f"Product {args.product_id} has not been scraped yet.")
+        raise SystemExit(f"Product {product_id} has not been scraped yet.")
 
-    state = {
-        "product": {"name": product.name, "url": product.url},
-        "scraped": {
-            "title": scraped.title,
-            "description_text": scraped.description_text,
-            "price": scraped.price,
-            "compare_at_price": scraped.compare_at_price,
-            "image_urls": scraped.image_urls,
-            "specs": scraped.specs,
-        },
-    }
-    state["campaign_brief"] = stubs.stub_campaign_brief(state)
-    state["script"] = stubs.stub_script(state)
-    plan = stubs.stub_video_plan(state)
-
+    voiceover_path = args.plan.parent / "voiceover.wav"
     result = render_video(
         video_plan=plan,
         image_urls=scraped.image_urls,
-        output_path=args.out,
+        output_path=args.out or (args.plan.parent / "video.mp4"),
+        voiceover_path=voiceover_path if voiceover_path.is_file() else None,
         aspect=args.aspect,
     )
     print(f"Rendered {result.path} — {result.duration_seconds:.1f}s, {result.scene_count} scenes")

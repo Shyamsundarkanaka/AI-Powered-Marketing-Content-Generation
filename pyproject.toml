@@ -1,0 +1,8 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+filterwarnings = [
+    # Fail on warnings from our own code, but not from dependencies — moviepy
+    # and langchain both emit deprecation noise we cannot act on.
+    "ignore::DeprecationWarning",
+]

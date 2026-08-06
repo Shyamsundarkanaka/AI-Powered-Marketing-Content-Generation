@@ -1,9 +1,13 @@
 """Output tab: review the latest generated version for a product, with older
 versions available below.
 
-This page reads artifacts off disk and rows out of SQLite. It never imports the
-`graph` package and never calls a model — rejecting a version queues a job, and
-the worker does the regeneration.
+This page reads artifacts off disk and rows out of SQLite. It never calls a
+model — rejecting a version queues a job, and the worker does the regeneration.
+
+Everything that qualifies what the reviewer is looking at — a silent voiceover,
+a render warning, an agent that needed a second attempt — is shown on this page.
+A reviewer approving a video is the last check before it goes out, so anything
+known to be wrong with it has to be visible here rather than in a metadata file.
 """
 from __future__ import annotations
 
@@ -16,10 +20,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 import streamlit as st
 
+from config.logging_setup import configure_logging
 from database.connection import init_db
 from database.repository import (
     create_job,
-    delete_product_with_files,
     get_active_job_for_product,
     get_product,
     list_jobs_for_product,
@@ -31,9 +35,12 @@ from database.repository import (
 from streamlit_app._shared import (
     STAGE_LABELS,
     centered_title,
+    colored_button,
     dashboard_button,
     hide_sidebar,
+    inject_action_button_css,
     inject_spinner_css,
+    render_warnings,
     running_badge,
     stage_progress,
     tighten_top_padding,
@@ -44,6 +51,7 @@ st.set_page_config(page_title="Output", page_icon="\U0001F4C4", layout="wide")
 hide_sidebar()
 tighten_top_padding()
 inject_spinner_css()
+inject_action_button_css()
 st.markdown(
     "<style>"
     # Cap the whole page to a comfortable reading width — on wide monitors the
@@ -61,10 +69,19 @@ st.markdown(
     "</style>",
     unsafe_allow_html=True,
 )
+configure_logging()
 init_db()
 ensure_worker_running()
 
 dashboard_button()
+
+# The Dashboard navigates here via st.switch_page + session_state (a plain
+# markdown link would render as an <a> tag that Streamlit's sanitizer forces
+# target="_blank" on, opening a new browser tab every time). Mirror the id
+# into query_params so the page still refreshes/bookmarks correctly.
+pending_product_id = st.session_state.pop("review_product_id", None)
+if pending_product_id is not None:
+    st.query_params["product_id"] = str(pending_product_id)
 
 query_product_id = st.query_params.get("product_id")
 product = None
@@ -99,30 +116,6 @@ else:
                 f"Run failed at: **{stage_label or 'unknown stage'}**\n\n"
                 f"{last_job.error_message or 'No error details recorded.'}"
             )
-
-    delete_col, _spacer = st.columns([1, 4])
-    if delete_col.button("🗑️ Delete product", key="delete_product_output"):
-        st.session_state["confirm_delete_output"] = True
-        st.rerun()
-
-    if st.session_state.get("confirm_delete_output"):
-        with st.container(border=True):
-            st.warning(
-                f"⚠️ Delete **{product.name}** (#{product.id})? This permanently removes "
-                f"its database record **and every generated file** under "
-                f"`{product.output_dir}` (briefs, scripts, video, voiceover, captions, "
-                f"hashtags — all versions). This cannot be undone."
-            )
-            confirm_col, cancel_col = st.columns(2)
-            if confirm_col.button("🗑️ Yes, delete permanently", key="confirm_delete_output_yes"):
-                delete_product_with_files(product.id)
-                st.session_state.pop("confirm_delete_output", None)
-                st.success(f"Deleted '{product.name}' and its files.")
-                time.sleep(1)
-                st.switch_page("app.py")
-            if cancel_col.button("Cancel", key="confirm_delete_output_no"):
-                st.session_state.pop("confirm_delete_output", None)
-                st.rerun()
 
 st.divider()
 
@@ -182,6 +175,11 @@ def render_primary(by_type: dict, meta: dict) -> None:
             audio_path = Path(by_type["voiceover"].file_path)
             if audio_path.exists():
                 st.audio(str(audio_path))
+                narration = (meta.get("content", {}) or {}).get("voiceover") or {}
+                if narration.get("is_silent"):
+                    st.caption("🔇 Silent track — no narration was synthesised.")
+                elif narration.get("engine"):
+                    st.caption(f"🔊 Narration by `{narration['engine']}`")
             else:
                 st.warning("Voiceover file is missing from disk.")
 
@@ -197,11 +195,7 @@ def render_primary(by_type: dict, meta: dict) -> None:
             )
         if "hashtags" in by_type:
             st.markdown("**Hashtags**")
-            st.code(
-                read_text(by_type["hashtags"].file_path) or "",
-                language=None,
-                height=200,
-            )
+            st.code(read_text(by_type["hashtags"].file_path) or "", language=None)
 
 
 def render_details(outputs, by_type: dict, meta: dict) -> None:
@@ -225,6 +219,18 @@ def render_details(outputs, by_type: dict, meta: dict) -> None:
             st.json(json.loads(body) if body else {})
         st.divider()
 
+    st.markdown("#### Provenance")
+    sources = meta.get("sources") or {}
+    carried = sorted(node for node, source in sources.items() if source == "carried_forward")
+    st.caption(
+        f"Generated by `{meta.get('model', 'unknown')}` via `{meta.get('provider', 'unknown')}`."
+    )
+    if carried:
+        st.caption(
+            f"Reused unchanged from the previous version (outside the feedback scope): "
+            f"{', '.join(carried)}."
+        )
+
     st.markdown("#### Files")
     st.dataframe(
         [{"Type": o.output_type, "File": o.file_path, "Created": o.created_at} for o in outputs],
@@ -233,24 +239,80 @@ def render_details(outputs, by_type: dict, meta: dict) -> None:
     )
 
 
-def render_review_actions(version) -> None:
+SCOPE_LABELS = {
+    "script": "Script",
+    "caption": "Caption",
+    "hashtags": "Hashtags",
+    "video_plan": "Video plan",
+}
+SCOPE_NODES = tuple(SCOPE_LABELS)
+# Campaign brief is deliberately not reviewer-selectable: a viewer judging the
+# finished video has no direct visibility into the brief (it's internal
+# strategy input, not something shown on screen), so asking them to scope
+# feedback to it would mean guessing at something they can't evaluate. It is
+# still regenerated, but only as part of "leave everything unchecked" below —
+# it's upstream of every other node, so a full restart is the one case where
+# revisiting it actually makes sense.
+SCOPE_CASCADE_HINT = {
+    "script": "also regenerates caption, hashtags & video plan (they're written from the script)",
+}
+
+
+def render_review_actions(version, show_approve: bool = True) -> None:
     feedback = st.text_area(
         "Feedback (required to reject — it is fed into the next generation)",
         key=f"feedback_{version.id}",
     )
-    approve_col, reject_col = st.columns(2)
-    if approve_col.button("✅ Approve", key=f"approve_{version.id}", type="primary", use_container_width=True):
+    st.caption(
+        "What does this feedback apply to? Leave everything unchecked to "
+        "regenerate the full version from scratch."
+    )
+    cols = st.columns(len(SCOPE_NODES))
+    selected_scope = [
+        node
+        for col, node in zip(cols, SCOPE_NODES)
+        if col.checkbox(SCOPE_LABELS[node], key=f"scope_{node}_{version.id}")
+    ]
+
+    hints = [SCOPE_CASCADE_HINT[node] for node in selected_scope if node in SCOPE_CASCADE_HINT]
+    if hints:
+        st.caption("Note: " + "; ".join(hints) + ".")
+    elif not selected_scope:
+        st.caption("Nothing checked — this will regenerate everything.")
+
+    if show_approve:
+        approve_col, reject_col = st.columns(2)
+        approve_clicked = colored_button(
+            approve_col, "✅ Approve", key=f"approve_{version.id}", marker="approve", use_container_width=True
+        )
+        reject_clicked = colored_button(
+            reject_col,
+            "🔁 Reject & regenerate",
+            key=f"reject_{version.id}",
+            marker="reject",
+            use_container_width=True,
+        )
+    else:
+        approve_clicked = False
+        reject_clicked = colored_button(
+            st, "🔁 Regenerate", key=f"reject_{version.id}", marker="reject", use_container_width=True
+        )
+
+    if approve_clicked:
         update_version_status(version.id, "Approved")
         update_product_status(product.id, "Approved")
         st.rerun()
-    if reject_col.button("🔁 Reject & regenerate", key=f"reject_{version.id}", use_container_width=True):
+    if reject_clicked:
         if not feedback.strip():
-            st.error("Feedback is required to reject — it is what makes the next version different.")
+            st.error("Feedback is required to regenerate — it is what makes the next version different.")
         else:
-            update_version_status(version.id, "Rejected", feedback.strip())
-            # Queue the regeneration. The worker reads the feedback off the
-            # rejected version row and injects it into every agent prompt for
-            # the next version.
+            # Empty string (nothing checked) means "regenerate everything",
+            # matching the pipeline's default when no scope is stored at all.
+            scope_value = ",".join(selected_scope)
+            update_version_status(version.id, "Rejected", feedback.strip(), scope_value)
+            # Queue the regeneration. The worker reads the feedback + scope off
+            # the rejected version row: nodes outside the scope are carried
+            # forward unchanged instead of calling the LLM again.
             job = create_job(product.id)
             # Reflect "Running" immediately rather than waiting up to
             # WORKER_POLL_INTERVAL_SECONDS for the worker to pick the job up
@@ -266,6 +328,9 @@ def render_version(version, is_latest: bool) -> None:
 
     if version.reviewer_feedback:
         st.info(f"**Reviewer feedback:** {version.reviewer_feedback}")
+        if version.feedback_scope:
+            scoped_labels = [SCOPE_LABELS.get(n, n) for n in version.feedback_scope.split(",")]
+            st.caption(f"Scoped to: {', '.join(scoped_labels)}")
     if meta.get("revision_of_feedback"):
         st.caption(f"↩️ Generated in response to: _{meta['revision_of_feedback']}_")
 
@@ -275,6 +340,7 @@ def render_version(version, is_latest: bool) -> None:
         return
 
     by_type = {output.output_type: output for output in outputs}
+    render_warnings(meta.get("warnings") or [])
     render_primary(by_type, meta)
 
     if st.checkbox("Show details — brief, script, video plan, files", key=f"show_details_{version.id}"):
@@ -283,6 +349,10 @@ def render_version(version, is_latest: bool) -> None:
     if version.status == "Review":
         st.divider()
         render_review_actions(version)
+    elif version.status == "Approved" and is_latest:
+        st.divider()
+        with st.expander("🔁 Regenerate this version"):
+            render_review_actions(version, show_approve=False)
 
 
 def latest_status_label(status: str) -> str:
