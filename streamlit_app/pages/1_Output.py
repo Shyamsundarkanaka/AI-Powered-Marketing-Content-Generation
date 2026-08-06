@@ -189,13 +189,20 @@ def render_primary(by_type: dict, meta: dict) -> None:
             st.text_area(
                 "caption",
                 read_text(by_type["caption"].file_path) or "",
-                height=320,
+                height=240,
                 label_visibility="collapsed",
                 key=f"caption_{by_type['caption'].id}",
             )
         if "hashtags" in by_type:
             st.markdown("**Hashtags**")
-            st.code(read_text(by_type["hashtags"].file_path) or "", language=None)
+            st.text_area(
+                "hashtags",
+                read_text(by_type["hashtags"].file_path) or "",
+                height=120,
+                disabled=True,
+                label_visibility="collapsed",
+                key=f"hashtags_{by_type['hashtags'].id}",
+            )
 
 
 def render_details(outputs, by_type: dict, meta: dict) -> None:

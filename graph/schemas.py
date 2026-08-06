@@ -31,10 +31,12 @@ MAX_SPEC_PILLS = 3
 DEFAULT_SCENE_SECONDS = 4.5
 
 # How far outside the brand's duration window a script may land before the
-# model is asked to rewrite it. The window is a target, not a hard contract —
-# rejecting a 24.6s script against a 25s floor would burn a call for nothing.
-DURATION_UNDER_TOLERANCE = 0.85
-DURATION_OVER_TOLERANCE = 1.20
+# model is asked to rewrite it. Kept tight (vs. a looser target-only tolerance)
+# because the final video's length is the voiceover's length exactly — the
+# accepted range here is the actual guarantee on rendered video duration, not
+# just a nudge for the model.
+DURATION_UNDER_TOLERANCE = 0.95
+DURATION_OVER_TOLERANCE = 1.10
 
 
 # --- primitives --------------------------------------------------------------
@@ -242,7 +244,10 @@ def caption(payload: Any) -> dict[str, Any]:
         raise SchemaError(
             f"the caption's first line is {len(actual_first_line)} characters; it must be "
             f"{first_line_max} or fewer, because that is all a viewer sees before the "
-            f'"more" truncation. Shorten the opening line.'
+            f'"more" truncation. The first line is measured up to the first literal '
+            f'"\\n" in "caption" — if there is no newline that early, the whole caption '
+            f"counts as one line. Insert a real newline right after the hook, then "
+            f"continue the rest of the caption after it."
         )
 
     cta = _text(payload, "cta", required=bool(rules.get("cta_required")))

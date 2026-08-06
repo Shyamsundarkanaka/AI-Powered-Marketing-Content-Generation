@@ -192,13 +192,23 @@ def caption_prompt(state: dict[str, Any]) -> tuple[str, str]:
         f"# SCRIPT\n{json.dumps(state['script'], indent=2, ensure_ascii=False)}\n\n"
         "# TASK\n"
         f"Write the Instagram/Reels caption. Maximum {rules['max_chars']} characters "
-        f"total. The first line is at most {rules['first_line_max_chars']} characters "
-        "and must stand on its own, because that is all most people see before the "
-        "'more' truncation.\n\n"
+        f"total. The opening hook must be at most {rules['first_line_max_chars']} "
+        "characters and must stand on its own, because that is all most people see "
+        "before the 'more' truncation.\n\n"
+        "The \"caption\" field's text is truncated at its FIRST newline character — "
+        "that literal newline is what the platform's preview cuts at, not a sentence "
+        "or clause boundary. So: write the hook, then immediately put a '\\n' (a "
+        "real line break, not a period or ellipsis) before continuing into the rest "
+        f"of the caption. If the hook alone is already within "
+        f"{rules['first_line_max_chars']} characters but you keep writing past it on "
+        "the same line with no break, the validator sees your whole run-on paragraph "
+        "as 'the first line' and rejects it — so the newline placement matters more "
+        "than the hook's wording.\n\n"
         f"A call to action is required. Emoji: {brand.raw['language']['emoji']['caption']}. "
         "Do not put hashtags in the caption — they are generated separately.\n\n"
         "# JSON KEYS\n"
-        '{"caption": str (full caption incl. the first line), "first_line": str, '
+        '{"caption": str (full caption, hook + "\\n" + the rest), "first_line": str '
+        "(must equal the caption's text up to that first newline), "
         '"cta": str, "char_count": number}'
         f"{revision_directive(state.get('revision'))}"
     )

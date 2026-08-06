@@ -93,7 +93,7 @@ content_rules:
     proof_points_min: 3
     note: Every proof point must trace to a scraped spec, price or description line.
   script:
-    duration_seconds: [25, 32]
+    duration_seconds: [32, 40]
     words_per_second: 2.4
     structure: [hook, problem, product_reveal, proof, cta]
     hook_max_words: 12

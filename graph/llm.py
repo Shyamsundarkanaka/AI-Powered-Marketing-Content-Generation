@@ -464,17 +464,25 @@ def generate_json(
             ) from exc
 
         raw = response_text(getattr(response, "content", response))
+        logger.info(
+            "%s: attempt %d/%d raw response:\n%s",
+            node, attempt, settings.LLM_JSON_ATTEMPTS, raw,
+        )
 
         try:
             payload = validator(extract_json(raw))
         except SchemaError as exc:
             repairs.append(str(exc))
+            if attempt == settings.LLM_JSON_ATTEMPTS:
+                logger.warning(
+                    "%s: attempt %d/%d produced an unusable response (%s); no attempts left, giving up",
+                    node, attempt, settings.LLM_JSON_ATTEMPTS, exc,
+                )
+                break
             logger.warning(
-                "%s: attempt %d/%d produced an unusable response (%s)",
+                "%s: attempt %d/%d produced an unusable response (%s); retrying with the error fed back",
                 node, attempt, settings.LLM_JSON_ATTEMPTS, exc,
             )
-            if attempt == settings.LLM_JSON_ATTEMPTS:
-                break
             messages.append(AIMessage(content=raw[:4000]))
             messages.append(HumanMessage(content=_REPAIR_TEMPLATE.format(error=exc)))
             continue
