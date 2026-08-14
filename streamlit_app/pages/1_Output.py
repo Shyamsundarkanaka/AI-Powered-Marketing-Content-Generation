@@ -199,7 +199,6 @@ def render_primary(by_type: dict, meta: dict) -> None:
                 "hashtags",
                 read_text(by_type["hashtags"].file_path) or "",
                 height=120,
-                disabled=True,
                 label_visibility="collapsed",
                 key=f"hashtags_{by_type['hashtags'].id}",
             )
@@ -347,7 +346,6 @@ def render_version(version, is_latest: bool) -> None:
         return
 
     by_type = {output.output_type: output for output in outputs}
-    render_warnings(meta.get("warnings") or [])
     render_primary(by_type, meta)
 
     if st.checkbox("Show details — brief, script, video plan, files", key=f"show_details_{version.id}"):
@@ -360,6 +358,8 @@ def render_version(version, is_latest: bool) -> None:
         st.divider()
         with st.expander("🔁 Regenerate this version"):
             render_review_actions(version, show_approve=False)
+
+    render_warnings(meta.get("warnings") or [])
 
 
 def latest_status_label(status: str) -> str:
