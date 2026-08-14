@@ -141,7 +141,10 @@ VOICEOVER_SAMPLE_RATE = _int("VOICEOVER_SAMPLE_RATE", 44100, minimum=8000)
 # Ordered TTS engine chain; the first one that works wins. Set to an empty
 # value to skip synthesis entirely and always write a silent track. Registry
 # and instructions for adding a paid engine: media/voice.py.
-TTS_ENGINES = _csv("TTS_ENGINES", "piper,pyttsx3")
+TTS_ENGINES = _csv("TTS_ENGINES", "elevenlabs,piper,pyttsx3")
+# Hosted voice for the `elevenlabs` engine.
+ELEVENLABS_API_KEY = _raw("ELEVENLABS_API_KEY")
+ELEVENLABS_VOICE_ID = _raw("ELEVENLABS_VOICE_ID") or "21m00Tcm4TlvDq8ikWAM"  # "Rachel", ElevenLabs' default
 # Local/offline neural voice for the `piper` engine: path to a downloaded
 # .onnx file, with its .onnx.json sidecar alongside it.
 PIPER_MODEL_PATH = _raw("PIPER_MODEL_PATH") or None

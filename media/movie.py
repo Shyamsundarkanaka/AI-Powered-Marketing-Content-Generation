@@ -512,7 +512,7 @@ class SceneRenderer:
         top = (filled.height - height) // 2
         filled = filled.crop((left, top, left + width, top + height))
         filled = filled.filter(ImageFilter.GaussianBlur(radius=max(width // 24, 14)))
-        return Image.blend(filled, Image.new("RGB", size, self.ctx.color("ink")), 0.64)
+        return Image.blend(filled, Image.new("RGB", size, self.ctx.color("ink")), 0.45)
 
     def _contact_shadow(
         self, hero: Image.Image, position: tuple[int, int], size: tuple[int, int]
@@ -544,10 +544,10 @@ class SceneRenderer:
         """Bottom-up darkening so text always has contrast beneath it."""
         width, height = size
         top_rgba = hex_to_rgba(self.ctx.brand.visual["gradient_scrim"][1], 0)
-        bottom_rgba = hex_to_rgba(self.ctx.brand.visual["gradient_scrim"][0], 245)
+        bottom_rgba = hex_to_rgba(self.ctx.brand.visual["gradient_scrim"][0], 220)
         ramp = Image.new("RGBA", (1, height))
         pixels = ramp.load()
-        start = int(height * 0.42)
+        start = int(height * 0.50)
         for y in range(height):
             if y < start:
                 pixels[0, y] = (*top_rgba[:3], 0)

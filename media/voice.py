@@ -6,25 +6,11 @@ track is written as digital silence of the script's estimated spoken length, so
 the video's timing, scene pacing and audio stream are all still correct and the
 result is flagged loudly rather than passed off as narration.
 
-**Adding a paid engine** is one function and one registry entry — nothing
-outside this module changes:
-
-    def _synthesize_elevenlabs(text: str, path: Path) -> None:
-        from elevenlabs.client import ElevenLabs
-        client = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
-        audio = client.text_to_speech.convert(
-            voice_id=settings.ELEVENLABS_VOICE_ID,
-            model_id="eleven_turbo_v2_5",
-            text=text,
-            output_format="pcm_44100",
-        )
-        _write_pcm_wav(path, b"".join(audio), sample_rate=44100)
-
-    ENGINES["elevenlabs"] = _synthesize_elevenlabs
-
-Then set `TTS_ENGINES=elevenlabs,piper` and the paid engine leads, with the
-local one as the free fallback. An engine signals "not usable" by raising
-`TTSUnavailable`; anything else it raises is caught and logged the same way.
+With `TTS_ENGINES=elevenlabs,piper,pyttsx3` (the default), the paid ElevenLabs
+engine leads, with Piper and then pyttsx3 as free local fallbacks. An engine
+signals "not usable" by raising `TTSUnavailable`; anything else it raises is
+caught and logged the same way, so a failover always shows up in a run's
+warnings — see `generate_voiceover`.
 """
 from __future__ import annotations
 
@@ -137,6 +123,37 @@ def write_pcm_wav(path: Path, pcm: bytes, sample_rate: int, channels: int = CHAN
         handle.writeframes(pcm)
 
 
+def _mp3_bytes_to_wav(mp3: bytes, path: Path, sample_rate: int) -> None:
+    """Decode MP3 bytes to a mono WAV at `path`, via the ffmpeg binary
+    `imageio_ffmpeg` already bundles for video rendering — no extra install.
+
+    Used for the `elevenlabs` engine: free/starter ElevenLabs tiers can only
+    return MP3, not raw PCM (that needs a paid tier), but the rest of the
+    pipeline (duration reads, the renderer) expects a plain WAV file.
+    """
+    import subprocess
+
+    import imageio_ffmpeg
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
+    # Output goes to a real file path, not a pipe: writing to pipe:1 leaves
+    # ffmpeg unable to seek back and fill in the WAV header's real data size,
+    # so it writes a placeholder (0x7FFFFFFF frames) that every downstream
+    # reader trusts as if it were the truth.
+    result = subprocess.run(
+        [
+            ffmpeg, "-y", "-f", "mp3", "-i", "pipe:0",
+            "-ar", str(sample_rate), "-ac", str(CHANNELS), str(path),
+        ],
+        input=mp3,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0 or not path.exists() or path.stat().st_size == 0:
+        raise TTSUnavailable(f"ffmpeg could not decode ElevenLabs' MP3: {result.stderr.decode(errors='replace')[-300:]}")
+
+
 def wav_duration_seconds(path: Path) -> float:
     """Duration straight from the WAV header. Raises if the file is unusable."""
     with wave.open(str(path), "rb") as handle:
@@ -172,6 +189,30 @@ def _synthesize_piper(text: str, path: Path) -> None:
         voice.synthesize_wav(text, handle)
 
 
+def _synthesize_elevenlabs(text: str, path: Path) -> None:
+    """Hosted, paid neural TTS. Needs `ELEVENLABS_API_KEY` (and optionally
+    `ELEVENLABS_VOICE_ID`) in .env, plus `pip install elevenlabs`.
+    """
+    if not settings.ELEVENLABS_API_KEY:
+        raise TTSUnavailable("ELEVENLABS_API_KEY is not set")
+
+    try:
+        from elevenlabs.client import ElevenLabs
+    except ImportError as exc:
+        raise TTSUnavailable("elevenlabs is not installed (pip install elevenlabs)") from exc
+
+    client = ElevenLabs(api_key=settings.ELEVENLABS_API_KEY)
+    audio = client.text_to_speech.convert(
+        voice_id=settings.ELEVENLABS_VOICE_ID,
+        model_id="eleven_turbo_v2_5",
+        text=text,
+        # MP3, not PCM: raw PCM output is a Pro-tier-and-above feature, while
+        # MP3 is available on every plan including free. Decoded to WAV below.
+        output_format="mp3_44100_128",
+    )
+    _mp3_bytes_to_wav(b"".join(audio), path, sample_rate=settings.VOICEOVER_SAMPLE_RATE)
+
+
 def _synthesize_pyttsx3(text: str, path: Path) -> None:
     """Whatever voices the operating system already has. Quality varies a lot."""
     try:
@@ -191,6 +232,7 @@ def _synthesize_pyttsx3(text: str, path: Path) -> None:
 # or raise; it does not need to report the duration, which is read back from
 # the file so the timeline is driven by real audio rather than a claim about it.
 ENGINES: dict[str, Callable[[str, Path], None]] = {
+    "elevenlabs": _synthesize_elevenlabs,
     "piper": _synthesize_piper,
     "pyttsx3": _synthesize_pyttsx3,
 }
