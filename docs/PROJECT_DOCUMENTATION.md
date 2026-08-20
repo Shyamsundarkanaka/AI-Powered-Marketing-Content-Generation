@@ -1,6 +1,6 @@
 # AI-Powered Marketing Content Generation — Complete Technical Documentation
 
-**Version:** 1.1 · **Generated:** 14 August 2026 · **Branch:** `version2` · **Codebase:** ~7,800 lines of Python across 9 packages
+**Version:** 1.2 · **Generated:** 20 August 2026 · **Branch:** `version2` · **Codebase:** ~6,650 lines of Python across 9 packages
 
 ---
 
@@ -244,14 +244,14 @@ AI-Powered-Marketing-Content-Generation/
 │   └── reset.py                 #    81 — destructive full wipe + re-seed
 ├── graph/                       # The LangGraph pipeline
 │   ├── pipeline.py              #   180 — topology, run_pipeline(), cancellation
-│   ├── nodes.py                 #   506 — the 9 node functions + feedback scoping
+│   ├── nodes.py                 #   518 — the 9 node functions + feedback scoping
 │   ├── prompts.py               #   280 — per-agent prompt builders
 │   ├── schemas.py               #   381 — validators/normalizers per agent
 │   ├── llm.py                   #   504 — provider registry, JSON extraction, repair-retry
 │   └── state.py                 #    74 — PipelineState TypedDict + reducers
 ├── media/
-│   ├── movie.py                 #  1074 — the renderer
-│   └── voice.py                 #   330 — TTS engine chain (ElevenLabs → Piper → pyttsx3)
+│   ├── movie.py                 #  1131 — the renderer
+│   └── voice.py                 #   370 — TTS engine chain (ElevenLabs → Piper → pyttsx3), per-beat synthesis
 ├── scraper/
 │   ├── shopify.py               #   139 — parse a Shopify product .json endpoint
 │   └── run.py                   #    96 — scrape_and_store() + CLI
@@ -1356,15 +1356,28 @@ return {"voiceover": result.as_dict(),
         "warnings": list(result.warnings)}
 ```
 
-It **always** returns a playable file (see §14.1) — the engine name records what produced it.
+It **always** returns a playable file (see §14.1) — the engine name records what produced it. `result.as_dict()` also carries `beat_durations`: the real, measured length of each script beat's spoken audio (empty when the track is silence), which `render_video` uses for per-beat scene timing.
 
 #### Node 8 — `render_video` — the one degrading node
 
 ```python
+voiceover = state.get("voiceover")
+voiceover_path = Path(voiceover["file_path"]) if voiceover else None
+
+# Real per-beat spoken durations, keyed by beat name, so scene timing can
+# follow the actual narration rather than only the video's total length
+# matching the audio's total length.
+beat_durations = None
+raw_beat_durations = (voiceover or {}).get("beat_durations") or []
+beat_names = [beat["beat"] for beat in state["script"]["beats"]]
+if len(raw_beat_durations) == len(beat_names):
+    beat_durations = dict(zip(beat_names, raw_beat_durations))
+
 try:
     result = movie.render_video(video_plan=state["video_plan"],
                                 image_urls=state["scraped"].get("image_urls") or [],
-                                output_path=path, voiceover_path=voiceover_path)
+                                output_path=path, voiceover_path=voiceover_path,
+                                beat_durations=beat_durations)
 except Exception as exc:                    # noqa: BLE001 — other artifacts still valid
     message = f"video render failed: {type(exc).__name__}: {exc}"
     _log(state, message, level="ERROR")
@@ -1514,43 +1527,57 @@ def discard_orphan_version_dirs(product_id: int) -> list[Path]:
 
 ## 14. Media generation — `media/`
 
-### 14.1 `voice.py` — the pluggable TTS chain
+### 14.1 `voice.py` — the pluggable TTS chain, synthesised beat-by-beat
 
-`TTS_ENGINES` is an **ordered** comma-separated list. Each engine is tried in turn; the first that produces a valid WAV wins. The default chain is `elevenlabs,piper,pyttsx3` — the paid, hosted ElevenLabs engine leads for narration quality, with Piper (local, offline, neural) and then pyttsx3 (whatever the OS provides) as free fallbacks if ElevenLabs is unreachable, unconfigured, or out of quota.
+`TTS_ENGINES` is an **ordered** comma-separated list. Each engine is tried in turn; the first that produces a valid, complete track wins. The default chain is `elevenlabs,piper,pyttsx3` — the paid, hosted ElevenLabs engine leads for narration quality, with Piper (local, offline, neural) and then pyttsx3 (whatever the OS provides) as free fallbacks if ElevenLabs is unreachable, unconfigured, or out of quota.
+
+**Each script beat is synthesised as its own clip**, not the script as one block of text. The reason is downstream: `media/movie.py::scale_scenes_to_beats()` needs to know how long *each beat* actually took to speak, not just the whole narration's total length, so that a scene change lands on the words actually being said at that moment instead of only the video's overall length matching the audio's overall length (see §14.2).
 
 ```mermaid
 flowchart TD
-    S["spoken_text_from_script()<br/>join only the `line` fields"] --> E{"text empty?"}
-    E -->|yes| SIL
-    E -->|no| L["for name in configured_engines()"]
-    L --> T["_try_engine(name)<br/>synthesize → scratch path"]
-    T -->|"TTSUnavailable / any exception"| L
-    T --> V{"file exists,<br/>size > 0,<br/>readable header?"}
-    V -->|no| L
-    V -->|yes| MV["scratch.replace(output_path)"]
-    MV --> OK["VoiceoverResult(engine=name)"]
+    S["one line per script beat<br/>(script['beats'][i]['line'])"] --> E{"any non-empty lines?"}
+    E -->|no| SIL
+    E -->|yes| L["for name in configured_engines()"]
+    L --> SB["_synthesize_beats(name, lines, scratch_dir)<br/>one WAV per beat, own scratch dir"]
+    SB -->|"TTSUnavailable / any exception<br/>on any beat"| L
+    SB --> CC["_concat_wavs(beat_paths, output_path)<br/>stream frames of each beat WAV in order"]
+    CC --> OK["VoiceoverResult(engine=name,<br/>beat_durations=[per-beat seconds])"]
     L -->|"chain exhausted"| SIL["write_silence(estimate_duration())"]
-    SIL --> W["VoiceoverResult(engine='silence')<br/>+ SILENT_TRACK_WARNING"]
+    SIL --> W["VoiceoverResult(engine='silence',<br/>beat_durations=[])<br/>+ SILENT_TRACK_WARNING"]
 ```
 
-**The scratch-file discipline** is the key correctness detail:
+**Per-beat synthesis and concatenation** are the two functions that replaced the old single-file `_try_engine`:
 
 ```python
-def _try_engine(name: str, text: str, output_path: Path) -> float:
-    """Synthesising to a scratch path matters: a half-written or zero-byte file
-    left at `output_path` by a failing engine would be picked up by the
-    renderer as if it were real audio."""
-    scratch = output_path.with_name(f"{output_path.stem}.{name}.partial.wav")
-    try:
-        ENGINES[name](text, scratch)
-        if not scratch.exists() or scratch.stat().st_size == 0:
-            raise TTSUnavailable(f"{name} produced no output file")
-        duration = wav_duration_seconds(scratch)     # reads the WAV header
-        scratch.replace(output_path)
-        return duration
-    finally:
-        scratch.unlink(missing_ok=True)
+def _synthesize_beats(name: str, lines: list[str], scratch_dir: Path) -> tuple[list[Path], list[float]]:
+    """Each beat gets its own file so its real spoken duration is measured
+    individually, rather than only the whole script's total being known."""
+    paths: list[Path] = []
+    durations: list[float] = []
+    for index, line in enumerate(lines):
+        beat_path = scratch_dir / f"beat_{index}.wav"
+        ENGINES[name](line, beat_path)
+        if not beat_path.exists() or beat_path.stat().st_size == 0:
+            raise TTSUnavailable(f"{name} produced no output for beat {index}")
+        durations.append(wav_duration_seconds(beat_path))
+        paths.append(beat_path)
+    return paths, durations
+
+def _concat_wavs(paths: list[Path], output_path: Path) -> None:
+    """Join beat-level WAV clips, in order, into one voiceover track.
+    All clips come from the same engine call in the same run, so they share
+    one format (channels/sample width/rate); this just streams frames through
+    rather than re-encoding."""
+    with wave.open(str(paths[0]), "rb") as first:
+        params = first.getparams()
+    with wave.open(str(output_path), "wb") as out:
+        out.setparams(params)
+        for path in paths:
+            with wave.open(str(path), "rb") as segment:
+                out.writeframes(segment.readframes(segment.getnframes()))
 ```
+
+`generate_voiceover()` synthesises every beat into a `tempfile.TemporaryDirectory()` scoped under the output directory — the whole beat set for one engine attempt lives and dies together, so a partial failure on beat 3 never leaves beats 1–2's scratch files at `output_path`. If an engine fails partway through the beat loop, the next engine in the chain retries **all** beats from scratch (there is no per-beat engine mixing — one engine produces the whole track, so the voice stays consistent end to end).
 
 **Registered engines:**
 
@@ -1572,9 +1599,9 @@ The warning that reaches the reviewer:
 
 **Adding another engine is one function and one registry entry** — nothing outside the module changes.
 
-`VoiceoverResult` carries `path`, `duration_seconds`, `engine`, `spoken_text`, `warnings`, and an `is_silent` property that flows all the way through `_meta.json` to a banner on the review page.
+`VoiceoverResult` carries `path`, `duration_seconds`, `engine`, `spoken_text`, `warnings`, `beat_durations` (per-beat seconds, in beat order, empty for a silent track), and an `is_silent` property that flows all the way through `_meta.json` to a banner on the review page. `as_dict()` rounds `beat_durations` to 3 decimal places for the JSON sidecar.
 
-### 14.2 `movie.py` — the renderer (1,074 lines)
+### 14.2 `movie.py` — the renderer (1,131 lines)
 
 Four design commitments, stated in the module docstring:
 
@@ -1587,11 +1614,15 @@ Four design commitments, stated in the module docstring:
 
 ```mermaid
 flowchart TD
-    P["video_plan.json"] --> BS["build_scenes()<br/>→ list[Scene]"]
+    P["video_plan.json"] --> BS["build_scenes()<br/>→ list[Scene] (each tagged with .beat)"]
     IU["image_urls[]"] --> IL["ImageLibrary<br/>SHA1-keyed disk cache"]
     BR["brand.yaml"] --> CTX["RenderContext<br/>geometry · palette · fonts · safe box"]
     VO["voiceover.wav"] --> AD["wav_duration_seconds()"]
-    AD --> SS["scale_scenes_to_audio()<br/>rescale every scene to REAL narration length"]
+    BD["beat_durations{beat: seconds}<br/>from voice.generate_voiceover"] --> SB{"scale_scenes_to_beats()<br/>groups clean & every beat covered?"}
+    BS --> SB
+    SB -->|yes| SR
+    SB -->|"no (missing/ambiguous beats)"| SS["scale_scenes_to_audio()<br/>fallback: one factor for the whole video"]
+    AD --> SS
     BS --> SS
     SS --> SR["SceneRenderer × N<br/>bake background + overlay ONCE"]
     IL --> SR
@@ -1780,18 +1811,44 @@ The **progress bar** is drawn directly into the NumPy frame buffer — a 6 px ba
 
 > Cheap, and it measurably holds attention — the viewer can see the end coming instead of guessing whether to swipe.
 
-#### Audio-driven retiming — `scale_scenes_to_audio()`
+#### Audio-driven retiming — `scale_scenes_to_beats()`, falling back to `scale_scenes_to_audio()`
 
-This is the most subtle correctness fix in the renderer:
+This is the most subtle correctness area in the renderer. The video plan's scene durations are only ever an estimate of how long the script *will* take to speak (the `words_per_second` heuristic), and real TTS rarely matches that estimate exactly — Piper spoke a measured 25.8s script in 19.6s in testing. Rather than padding/trimming the *audio* to fit a guessed-at video length (which either freezes on a dead frame or chops off narration), the scenes are rescaled to fit the *real* narration length.
+
+There are two ways to do that rescale, tried in order:
+
+**1. `scale_scenes_to_beats()` — per-beat retiming, the preferred path.** A single whole-video stretch factor (below) only guarantees the *total* length matches the narration; mid-video, a scene can still be showing beat N while the audio has already moved on to beat N+1, because ElevenLabs and the other engines don't speak every beat proportionally faster/slower by the same ratio. This groups consecutive scenes by the `beat` they narrate (the video plan gives one scene per beat, occasionally more) and scales each group only against that beat's own measured duration from `voice.generate_voiceover`'s `beat_durations`:
+
+```python
+def scale_scenes_to_beats(scenes, beat_durations, transition) -> bool:
+    """Returns False (no changes made) if the scenes' `beat` values don't cover
+    the plan cleanly — a beat missing from `beat_durations`, or one beat's
+    scenes interleaved with another's — so the caller falls back to
+    scale_scenes_to_audio()."""
+    groups = []  # consecutive scenes grouped by .beat
+    for scene in scenes:
+        if groups and groups[-1][0] == scene.beat:
+            groups[-1][1].append(scene)
+        else:
+            groups.append((scene.beat, [scene]))
+    if any(beat not in beat_durations for beat, _ in groups):
+        return False
+    for beat, group in groups:
+        target = beat_durations[beat]
+        overlap = transition * (len(group) - 1) if len(group) > 1 else 0.0
+        planned = sum(s.duration for s in group) - overlap
+        factor = (target + overlap) / (planned + overlap)
+        for scene in group:
+            scene.duration = max(scene.duration * factor, MIN_SCENE_SECONDS)
+        achieved = sum(s.duration for s in group) - overlap
+        group[-1].duration = max(group[-1].duration + (target - achieved), MIN_SCENE_SECONDS)
+    return True
+```
+
+**2. `scale_scenes_to_audio()` — whole-video retiming, the fallback.** Used when `beat_durations` is absent (older `_meta.json`, silent track) or the scene/beat grouping is ambiguous. Same shape as above, but one `factor` applied to every scene against the WAV's total duration:
 
 ```python
 def scale_scenes_to_audio(scenes, target_duration, transition):
-    """The video plan's scene durations are only ever an estimate of how long the
-    script *will* take to speak (the `words_per_second` heuristic). Real TTS
-    rarely matches that estimate exactly — Piper spoke a measured 25.8s script
-    in 19.6s in testing. Rather than padding/trimming the *audio* to fit a
-    guessed-at video length (which either freezes on a dead frame or chops off
-    narration), the scenes are rescaled to fit the *real* narration length."""
     overlap = transition * (n - 1) if n > 1 else 0.0
     planned = sum(s.duration for s in scenes) - overlap
     factor = (target_duration + overlap) / (planned + overlap)
@@ -1804,7 +1861,9 @@ def scale_scenes_to_audio(scenes, target_duration, transition):
     scenes[-1].duration = max(scenes[-1].duration + (target_duration - achieved), MIN_SCENE_SECONDS)
 ```
 
-The target comes from `voice.wav_duration_seconds()` — **the WAV header**, i.e. the real audio, not a claim about it.
+Both share the same drift-absorption trick: the `MIN_SCENE_SECONDS` floor (1.2s) and the fixed, unscaled transition overlap mean the scaled total can drift from the target, so the residual is dumped into the last scene of the scaled group so the timeline lands on the real audio duration exactly.
+
+`render_video()` tries `scale_scenes_to_beats()` first whenever `beat_durations` was passed in and is non-empty; only if it returns `False` (or no `beat_durations` was given) does it fall back to `scale_scenes_to_audio()` using `voice.wav_duration_seconds()` — **the WAV header**, i.e. the real audio, not a claim about it. If neither can run (no voiceover file at all), a warning is appended and scene timing follows the video plan's estimates only.
 
 `_conform_audio()` then trims or pads the audio to the timeline duration within a 0.05 s tolerance, appending a warning if padding was needed.
 
@@ -2091,11 +2150,11 @@ Find it for ₹75,000 at Radboards.in. Range and speed vary.
 | 5 | cta | cta | 5 | 4.9 s | RADBOARDS.IN | — |
 
 ### Step 8 — `voiceover`
-This walkthrough was captured without `ELEVENLABS_API_KEY` set, so the chain fell through to the first free engine: Piper synthesised the joined `line` fields to a scratch WAV, header verified, moved into place: **22.37 s**, engine `piper`, `is_silent: false`. With an ElevenLabs key configured, the same run would produce `engine: "elevenlabs"` instead, with the MP3 response decoded to WAV via ffmpeg before this step.
+This walkthrough was captured without `ELEVENLABS_API_KEY` set, so the chain fell through to the first free engine: Piper synthesised each of the 5 beats (`hook`, `problem`, `product_reveal`, `proof`, `cta`) as its own WAV in a scratch directory, then `_concat_wavs()` joined them in order: **22.37 s total**, engine `piper`, `is_silent: false`. `beat_durations` records each beat's real measured length, e.g. `{"hook": 3.9, "problem": 4.1, "product_reveal": 4.4, "proof": 5.6, "cta": 4.4}` (sums to 22.4s minus rounding). With an ElevenLabs key configured, the same run would produce `engine: "elevenlabs"` instead, with each beat's MP3 response decoded to WAV via ffmpeg before concatenation.
 
 ### Step 9 — `render_video`
-- Planned total: 22.9 s. Real audio: 22.37 s.
-- `scale_scenes_to_audio()` rescales all five by `factor ≈ (22.37 + 1.8) / (22.9 + 1.8) ≈ 0.978`.
+- Planned total: 22.9 s. Real audio: 22.37 s. `beat_durations` from Step 8 is passed straight through.
+- `scale_scenes_to_beats()` runs first: the plan has one scene per beat and every beat name is present in `beat_durations`, so it applies (grouping is clean — this walkthrough's fallback-triggering case, an ambiguous beat grouping, is covered in the code comments above). Each of the 5 scenes is rescaled against its **own** beat's measured duration rather than one whole-video factor — e.g. the `proof` scene (planned 4.5s) rescales toward the `proof` beat's 5.6s, while `hook` (planned 4.5s) shrinks toward 3.9s.
 - 5 `SceneRenderer`s bake backgrounds at 1274×2266 (1.18×) and overlays at 1080×1920.
 - `Timeline` with 0.45 s dissolves; total 22.37 s.
 - 671 frames rendered at 30 fps, encoded H.264 + AAC, `yuv420p`.
@@ -2274,7 +2333,7 @@ A dependency-ordered build sequence. Each step is independently testable.
 
 ### Phase 6 — media
 
-**16. `media/voice.py`.** WAV helpers (`write_silence`, `write_pcm_wav`, `wav_duration_seconds`) → the three engines (`elevenlabs`, `piper`, `pyttsx3`) → `ENGINES` registry → `_try_engine` with the scratch-file discipline → `generate_voiceover`.
+**16. `media/voice.py`.** WAV helpers (`write_silence`, `write_pcm_wav`, `wav_duration_seconds`, `_concat_wavs`) → the three engines (`elevenlabs`, `piper`, `pyttsx3`) → `ENGINES` registry → `_synthesize_beats` (per-beat synthesis into a scratch dir) → `generate_voiceover` (drives the engine chain, concatenates beats, returns `beat_durations`).
 
 **17. `media/movie.py`.** The largest module; build bottom-up:
    1. geometry helpers (`ease_in_out_cubic`, `lerp`, `cover_box`, `contain_box`)
@@ -2282,11 +2341,11 @@ A dependency-ordered build sequence. Each step is independently testable.
    3. `FontBook`
    4. text helpers (`text_width`, `draw_tracked_text`, `wrap_text`, `line_height`)
    5. `ImageLibrary`
-   6. `Scene` + `Scene.from_plan`
+   6. `Scene` (incl. the `beat` field) + `Scene.from_plan`
    7. `RenderContext`
    8. `SceneRenderer` (`_build_background`, `_build_overlay`, `frame_at`)
    9. `Timeline`
-   10. `scale_scenes_to_audio`, `build_scenes`, `_conform_audio`, `render_video`
+   10. `scale_scenes_to_audio`, `scale_scenes_to_beats`, `build_scenes`, `_conform_audio`, `render_video`
 
    *Test each stage by writing single frames to PNG before wiring up ffmpeg.* The `python -m media.movie --plan …` entry point exists precisely so you can iterate on the renderer without spending model calls.
 
@@ -2373,7 +2432,10 @@ So every frame is a *downscale* of an oversampled source. If the canvas were bui
 The boards have white graffiti prints, so a global white threshold would punch holes in the product. Instead, the algorithm builds a "white" mask (all channels ≥232 and channel spread ≤24), downscales to ~256 px wide, seeds a flood fill from every white *border* pixel, and grows it with vectorised 4-connected NumPy dilations constrained to white — so only white **connected to the border** (i.e. the studio backdrop) is removed. The result is upscaled, inverted, Gaussian-feathered at 1.6 px, and used as an alpha channel. Coverage guards (2 %–93 %) abort the heuristic when the image clearly isn't a catalogue shot.
 
 **Q: Why are scenes rescaled to the audio rather than the audio padded to the scenes?**
-The plan's durations are an estimate from the words-per-second heuristic; real TTS diverges (Piper spoke a measured 25.8 s script in 19.6 s in testing). Padding the audio freezes the last frame on silence; trimming it chops off narration. Rescaling every scene by a single factor keeps every frame proportionally aligned to the audio actually being played, and the residual drift from the 1.2 s scene floor is absorbed into the last scene so the timeline lands exactly.
+The plan's durations are an estimate from the words-per-second heuristic; real TTS diverges (Piper spoke a measured 25.8 s script in 19.6 s in testing). Padding the audio freezes the last frame on silence; trimming it chops off narration. Rescaling keeps every frame aligned to the audio actually being played, and the residual drift from the 1.2 s scene floor is absorbed into the last scene so the timeline lands exactly.
+
+**Q: Why does the renderer scale scenes per-beat instead of by one whole-video factor?**
+A single stretch factor only guarantees the *total* video length matches the *total* audio length — mid-video, a scene can still be on-screen for beat N while the narration has already moved to beat N+1, because engines like ElevenLabs don't speak every beat proportionally faster or slower by the same ratio. `voice.generate_voiceover()` now synthesises and measures each beat separately (`beat_durations`), and `movie.scale_scenes_to_beats()` rescales each beat's scene(s) against that beat's own real duration, so a scene change lands on the words actually being spoken at that moment. It only applies when the scene/beat grouping is unambiguous (every beat present, no interleaving); otherwise `render_video()` falls back to the single-factor `scale_scenes_to_audio()`.
 
 **Q: Why SQLite, and how do the worker thread and the UI thread not collide?**
 SQLite is the right size for a single-machine deployment, and the queue semantics needed (FIFO, one worker, terminal statuses) fit in the schema. Concurrency is handled by WAL journal mode — which lets a reader proceed during a write — plus a 30-second `busy_timeout` that absorbs the remaining contention, so neither thread ever raises `database is locked`.
