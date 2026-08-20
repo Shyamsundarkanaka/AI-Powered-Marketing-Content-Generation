@@ -348,7 +348,18 @@ def render_video(state: PipelineState) -> dict[str, Any]:
     regenerated (and paid for again) to recover from an ffmpeg hiccup.
     """
     path = Path(state["output_dir"]) / "video.mp4"
-    voiceover_path = Path(state["voiceover"]["file_path"]) if state.get("voiceover") else None
+    voiceover = state.get("voiceover")
+    voiceover_path = Path(voiceover["file_path"]) if voiceover else None
+
+    # Real per-beat spoken durations (beat name -> seconds), so scene timing
+    # can follow the actual narration instead of only the video's total
+    # length matching the audio's total length. See media/voice.py and
+    # media/movie.scale_scenes_to_beats.
+    beat_durations = None
+    raw_beat_durations = (voiceover or {}).get("beat_durations") or []
+    beat_names = [beat["beat"] for beat in state["script"]["beats"]]
+    if len(raw_beat_durations) == len(beat_names):
+        beat_durations = dict(zip(beat_names, raw_beat_durations))
 
     try:
         result = movie.render_video(
@@ -356,6 +367,7 @@ def render_video(state: PipelineState) -> dict[str, Any]:
             image_urls=state["scraped"].get("image_urls") or [],
             output_path=path,
             voiceover_path=voiceover_path,
+            beat_durations=beat_durations,
         )
     except Exception as exc:  # noqa: BLE001 — the other artifacts are still valid
         message = f"video render failed: {type(exc).__name__}: {exc}"

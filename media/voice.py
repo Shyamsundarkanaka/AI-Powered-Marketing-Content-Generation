@@ -48,6 +48,11 @@ class VoiceoverResult:
     engine: str                     # engine name, or "silence"
     spoken_text: str
     warnings: list[str] = field(default_factory=list)
+    # Real spoken duration of each script beat, in beat order — empty when the
+    # track is silence (no real speech to measure). This is what lets scene
+    # timing follow the words actually being spoken beat-by-beat instead of
+    # one whole-video average; see `media/movie.scale_scenes_to_beats`.
+    beat_durations: list[float] = field(default_factory=list)
 
     @property
     def is_silent(self) -> bool:
@@ -61,6 +66,7 @@ class VoiceoverResult:
             "is_silent": self.is_silent,
             "spoken_text": self.spoken_text,
             "warnings": self.warnings,
+            "beat_durations": [round(d, 3) for d in self.beat_durations],
         }
 
 
@@ -163,6 +169,23 @@ def wav_duration_seconds(path: Path) -> float:
     return frames / float(rate)
 
 
+def _concat_wavs(paths: list[Path], output_path: Path) -> None:
+    """Join beat-level WAV clips, in order, into one voiceover track.
+
+    All clips come from the same engine call in the same run, so they share
+    one format (channels/sample width/rate); this just streams frames through
+    rather than re-encoding.
+    """
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with wave.open(str(paths[0]), "rb") as first:
+        params = first.getparams()
+    with wave.open(str(output_path), "wb") as out:
+        out.setparams(params)
+        for path in paths:
+            with wave.open(str(path), "rb") as segment:
+                out.writeframes(segment.readframes(segment.getnframes()))
+
+
 # --- engines -----------------------------------------------------------------
 
 def _synthesize_piper(text: str, path: Path) -> None:
@@ -252,24 +275,26 @@ def configured_engines() -> list[str]:
     return chain
 
 
-def _try_engine(name: str, text: str, output_path: Path) -> float:
-    """Run one engine into a temp file, verify it, then move it into place.
+def _synthesize_beats(name: str, lines: list[str], scratch_dir: Path) -> tuple[list[Path], list[float]]:
+    """Synthesize each script beat's line as its own clip with one engine.
 
-    Synthesising to a scratch path matters: a half-written or zero-byte file
-    left at `output_path` by a failing engine would be picked up by the
-    renderer as if it were real audio.
+    Each beat gets its own file so its real spoken duration is measured
+    individually, rather than only the whole script's total being known. That
+    per-beat duration is what lets a scene's on-screen time match the words
+    actually being spoken during it (`media/movie.scale_scenes_to_beats`)
+    instead of everyone sharing one whole-video average stretch factor, which
+    is what let scenes drift out of sync with narration mid-video.
     """
-    scratch = output_path.with_name(f"{output_path.stem}.{name}.partial.wav")
-    scratch.parent.mkdir(parents=True, exist_ok=True)
-    try:
-        ENGINES[name](text, scratch)
-        if not scratch.exists() or scratch.stat().st_size == 0:
-            raise TTSUnavailable(f"{name} produced no output file")
-        duration = wav_duration_seconds(scratch)
-        scratch.replace(output_path)
-        return duration
-    finally:
-        scratch.unlink(missing_ok=True)
+    paths: list[Path] = []
+    durations: list[float] = []
+    for index, line in enumerate(lines):
+        beat_path = scratch_dir / f"beat_{index}.wav"
+        ENGINES[name](line, beat_path)
+        if not beat_path.exists() or beat_path.stat().st_size == 0:
+            raise TTSUnavailable(f"{name} produced no output for beat {index}")
+        durations.append(wav_duration_seconds(beat_path))
+        paths.append(beat_path)
+    return paths, durations
 
 
 def generate_voiceover(script: dict[str, Any], output_path: Path) -> VoiceoverResult:
@@ -278,26 +303,42 @@ def generate_voiceover(script: dict[str, Any], output_path: Path) -> VoiceoverRe
     Always returns a playable file. `engine` records what produced it, and
     `is_silent` flows through to the review UI so a silent track is visible to
     the person approving the video rather than buried in metadata.
+
+    Synthesizes one clip per script beat (falling back to the next engine if
+    any beat fails) and concatenates them, so `beat_durations` reports each
+    beat's real measured length rather than a single total.
     """
+    import tempfile
+
     output_path = Path(output_path)
+    beats = script.get("beats") or []
+    lines = [str(beat.get("line", "")).strip() for beat in beats if beat.get("line")]
     text = spoken_text_from_script(script)
     warnings: list[str] = []
 
-    if not text:
+    if not lines:
         warnings.append("The script contained no spoken lines.")
     else:
-        for name in configured_engines():
-            try:
-                duration = _try_engine(name, text, output_path)
-            except TTSUnavailable as exc:
-                logger.info("TTS engine %s unavailable: %s", name, exc)
-                warnings.append(f"{name}: {exc}")
-            except Exception as exc:  # noqa: BLE001 — TTS backends fail creatively
-                logger.warning("TTS engine %s failed: %s", name, exc)
-                warnings.append(f"{name} failed: {type(exc).__name__}: {exc}")
-            else:
-                logger.info("Voiceover: %.1fs from %s -> %s", duration, name, output_path)
-                return VoiceoverResult(output_path, duration, name, text, warnings)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(dir=output_path.parent) as tmp:
+            scratch_dir = Path(tmp)
+            for name in configured_engines():
+                try:
+                    beat_paths, beat_durations = _synthesize_beats(name, lines, scratch_dir)
+                    _concat_wavs(beat_paths, output_path)
+                except TTSUnavailable as exc:
+                    logger.info("TTS engine %s unavailable: %s", name, exc)
+                    warnings.append(f"{name}: {exc}")
+                except Exception as exc:  # noqa: BLE001 — TTS backends fail creatively
+                    logger.warning("TTS engine %s failed: %s", name, exc)
+                    warnings.append(f"{name} failed: {type(exc).__name__}: {exc}")
+                else:
+                    duration = sum(beat_durations)
+                    logger.info(
+                        "Voiceover: %.1fs from %s -> %s (%d beats)",
+                        duration, name, output_path, len(beat_durations),
+                    )
+                    return VoiceoverResult(output_path, duration, name, text, warnings, beat_durations)
 
     duration = estimate_duration(text, script)
     write_silence(output_path, duration)
