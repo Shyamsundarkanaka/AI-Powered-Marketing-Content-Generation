@@ -410,6 +410,7 @@ class Scene:
     image_index: int = 0
     spec_pills: list[dict[str, str]] = field(default_factory=list)
     pan_direction: int = 1          # +1 / -1, alternated so the film doesn't drift
+    beat: str = ""                  # script beat this scene narrates, e.g. "hook"
 
     @classmethod
     def from_plan(cls, raw: dict[str, Any], order: int, brand: Brand) -> "Scene":
@@ -443,6 +444,7 @@ class Scene:
             image_index=image_index,
             spec_pills=pills,
             pan_direction=1 if order % 2 == 0 else -1,
+            beat=str(raw.get("beat") or "").strip(),
         )
 
 
@@ -916,6 +918,51 @@ def scale_scenes_to_audio(scenes: list[Scene], target_duration: float, transitio
     scenes[-1].duration = max(scenes[-1].duration + residual, MIN_SCENE_SECONDS)
 
 
+def scale_scenes_to_beats(scenes: list[Scene], beat_durations: dict[str, float], transition: float) -> bool:
+    """Rescale each scene against its own beat's real spoken duration.
+
+    `scale_scenes_to_audio` applies one stretch factor to the whole video, so
+    it only guarantees the *total* length matches the narration — mid-video,
+    a scene can still show beat N while the audio has already moved on to
+    beat N+1, because ElevenLabs doesn't speak every beat proportionally
+    faster/slower by the same ratio. This instead groups scenes by the beat
+    they narrate (the video plan gives one scene per beat, occasionally more)
+    and scales each group only against that beat's measured audio, so a scene
+    change lines up with the words actually being spoken at that moment.
+
+    Returns False (making no changes) if the scenes' `beat` values don't
+    cover the plan cleanly — e.g. beats missing from `beat_durations`, or one
+    beat's scenes split up by scenes of another beat — so the caller can fall
+    back to `scale_scenes_to_audio`.
+    """
+    if not scenes or not beat_durations:
+        return False
+
+    groups: list[tuple[str, list[Scene]]] = []
+    for scene in scenes:
+        if groups and groups[-1][0] == scene.beat:
+            groups[-1][1].append(scene)
+        else:
+            groups.append((scene.beat, [scene]))
+
+    if any(beat not in beat_durations for beat, _ in groups):
+        return False
+
+    for beat, group in groups:
+        target = beat_durations[beat]
+        overlap = transition * (len(group) - 1) if len(group) > 1 else 0.0
+        planned = sum(s.duration for s in group) - overlap
+        if planned <= 0 or target <= 0:
+            continue
+        factor = (target + overlap) / (planned + overlap)
+        for scene in group:
+            scene.duration = max(scene.duration * factor, MIN_SCENE_SECONDS)
+        achieved = sum(s.duration for s in group) - overlap
+        residual = target - achieved
+        group[-1].duration = max(group[-1].duration + residual, MIN_SCENE_SECONDS)
+    return True
+
+
 def build_scenes(video_plan: dict[str, Any], brand: Brand) -> list[Scene]:
     """Plan JSON -> validated scenes, with a usable fallback if the plan is empty."""
     raw_scenes: Iterable[dict[str, Any]] = video_plan.get("scenes") or []
@@ -940,11 +987,18 @@ def render_video(
     image_urls: Sequence[str],
     output_path: Path,
     voiceover_path: Optional[Path] = None,
+    beat_durations: Optional[dict[str, float]] = None,
     brand: Optional[Brand] = None,
     aspect: Optional[str] = None,
     fps: Optional[int] = None,
 ) -> RenderResult:
-    """Render the video described by `video_plan` and write it to `output_path`."""
+    """Render the video described by `video_plan` and write it to `output_path`.
+
+    `beat_durations` (beat name -> real spoken seconds, from ElevenLabs/etc via
+    `voice.generate_voiceover`) drives per-scene timing when available, so each
+    scene's on-screen time matches the words spoken during it rather than only
+    the video's total length matching the audio's total length.
+    """
     from moviepy import VideoClip
 
     brand = brand or load_brand()
@@ -961,10 +1015,13 @@ def render_video(
     warnings = list(images.warnings)
     voiceover_exists = bool(voiceover_path) and Path(voiceover_path).exists()
     audio_duration = _wav_duration_seconds(Path(voiceover_path)) if voiceover_exists else None
-    if audio_duration:
-        scale_scenes_to_audio(scenes, audio_duration, transition_seconds)
-    elif voiceover_exists:
-        warnings.append("Could not read voiceover duration; scene timing follows the video plan only.")
+
+    scaled_per_beat = bool(beat_durations) and scale_scenes_to_beats(scenes, beat_durations, transition_seconds)
+    if not scaled_per_beat:
+        if audio_duration:
+            scale_scenes_to_audio(scenes, audio_duration, transition_seconds)
+        elif voiceover_exists:
+            warnings.append("Could not read voiceover duration; scene timing follows the video plan only.")
 
     logger.info(
         "Rendering %d scenes at %dx%d/%dfps from %d source image(s)",

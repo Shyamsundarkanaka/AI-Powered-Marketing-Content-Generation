@@ -48,6 +48,8 @@ contents page.
 | `content_ch5_7.py` | Methodology (TDSP), Resource Requirements, Software Design |
 | `content_ch8.py` | Implementation |
 | `content_ch9_11.py` | Testing and Validation, Analysis and Results, Conclusions, References, Appendices |
+| `figstyle.py` | Shared matplotlib drawing primitives (boxes, arrows, labels) used by the diagram generator scripts |
+| `generate_fig_7_3_7_5.py` | Regenerates Fig. 7.3 (level-1 DFD) and Fig. 7.5 (request-lifecycle sequence diagram) — run it after editing either diagram |
 | `figures/` | All figures. Diagrams and charts were generated with matplotlib; `fig_9_4_contact_sheet.png` and `frame_*.png` are real frames extracted from `output/electric-unicycle-kingsong-14d/v1/video.mp4` |
 
 Figure and table numbers are literal text, so they are stable across rebuilds. Each

@@ -78,7 +78,7 @@ class TestCampaignBrief:
 
 class TestScript:
     def test_accepts_and_measures_a_valid_script(self, brand):
-        result = schemas.script({"title": "Ride", "beats": _beats()})
+        result = schemas.script({"title": "Ride", "beats": _beats(word_count=20)})
         low, high = brand.content_rules["script"]["duration_seconds"]
         assert low * 0.85 <= result["estimated_duration_seconds"] <= high * 1.2
         assert result["word_count"] > 0
@@ -87,7 +87,7 @@ class TestScript:
         # The model's own estimate is ignored: the word count is the fact, and
         # the voiceover and video timing are both built from it.
         result = schemas.script(
-            {"title": "Ride", "beats": _beats(), "estimated_duration_seconds": 999}
+            {"title": "Ride", "beats": _beats(word_count=20), "estimated_duration_seconds": 999}
         )
         assert result["estimated_duration_seconds"] < 100
 
@@ -126,7 +126,7 @@ class TestScript:
             schemas.script({"title": "t", "beats": beats})
 
     def test_normalizes_beat_name_spacing_and_case(self, brand):
-        beats = _beats()
+        beats = _beats(word_count=20)
         beats[2]["beat"] = "Product Reveal"
         assert schemas.script({"title": "t", "beats": beats})["beats"][2]["beat"] == "product_reveal"
 

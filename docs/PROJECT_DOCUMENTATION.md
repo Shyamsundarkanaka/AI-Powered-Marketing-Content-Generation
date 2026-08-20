@@ -1,6 +1,6 @@
 # AI-Powered Marketing Content Generation — Complete Technical Documentation
 
-**Version:** 1.0 · **Generated:** 7 August 2026 · **Branch:** `version2` · **Codebase:** ~7,800 lines of Python across 9 packages
+**Version:** 1.1 · **Generated:** 14 August 2026 · **Branch:** `version2` · **Codebase:** ~7,800 lines of Python across 9 packages
 
 ---
 
@@ -58,7 +58,7 @@ Given **one public Shopify product URL**, the system produces a complete, review
 | Instagram/Reels caption | `caption.txt` | LLM agent |
 | Hashtag set (8–12 tags) | `hashtags.txt` | LLM agent |
 | Shot-by-shot video plan | `video_plan.json` | LLM agent |
-| Narration track | `voiceover.wav` | Local TTS (Piper / pyttsx3) |
+| Narration track | `voiceover.wav` | TTS chain (ElevenLabs → Piper → pyttsx3) |
 | Rendered vertical video | `video.mp4` (1080×1920, 30 fps, H.264+AAC) | Pillow + NumPy + MoviePy |
 | Provenance sidecar | `_meta.json` | Pipeline `finalize` node |
 
@@ -111,7 +111,8 @@ There is exactly **one** exception to "fail rather than degrade": a **video rend
 | Media | `imageio-ffmpeg` | 0.6.0 | **Bundled ffmpeg binary** — no system install needed |
 | Media | `pillow` | 10.4.0 | All frame compositing and text rendering |
 | Media | `numpy` | 2.5.1 | Frame buffers, cutout flood fill |
-| TTS | `piper-tts` | 1.3.0 | Local/offline neural voice |
+| TTS | `elevenlabs` | 1.58.0 | Hosted neural voice — default, leads the TTS chain |
+| TTS | `piper-tts` | 1.3.0 | Local/offline neural voice — fallback |
 | Test | `pytest` | 8.3.3 | 174 tests, no network, no API key |
 
 **Notably absent:** no ORM (raw `sqlite3`), no web framework (Streamlit only), no ImageMagick (Pillow does all text), no system ffmpeg, no vector DB, no external queue (SQLite *is* the queue).
@@ -250,7 +251,7 @@ AI-Powered-Marketing-Content-Generation/
 │   └── state.py                 #    74 — PipelineState TypedDict + reducers
 ├── media/
 │   ├── movie.py                 #  1074 — the renderer
-│   └── voice.py                 #   287 — TTS engine chain
+│   └── voice.py                 #   330 — TTS engine chain (ElevenLabs → Piper → pyttsx3)
 ├── scraper/
 │   ├── shopify.py               #   139 — parse a Shopify product .json endpoint
 │   └── run.py                   #    96 — scrape_and_store() + CLI
@@ -362,7 +363,9 @@ Helpers: `_raw`, `_path`, `_int`, `_float`, `_choice`, `_csv`.
 | `VIDEO_FPS` | 30 | ≥1 | renderer |
 | `VIDEO_RENDER_THREADS` | 4 | ≥1 | ffmpeg |
 | `VOICEOVER_SAMPLE_RATE` | 44100 | ≥8000 | silent-track writer |
-| `TTS_ENGINES` | `piper,pyttsx3` | CSV, ordered | `media/voice.py` |
+| `TTS_ENGINES` | `elevenlabs,piper,pyttsx3` | CSV, ordered | `media/voice.py` |
+| `ELEVENLABS_API_KEY` | None | | elevenlabs engine |
+| `ELEVENLABS_VOICE_ID` | `21m00Tcm4TlvDq8ikWAM` ("Rachel") | | elevenlabs engine |
 | `PIPER_MODEL_PATH` | None | path to `.onnx` | piper engine |
 | `HTTP_TIMEOUT_SECONDS` | 20 | ≥1 | shared session |
 | `HTTP_MAX_RETRIES` | 3 | ≥0 | shared session |
@@ -1513,7 +1516,7 @@ def discard_orphan_version_dirs(product_id: int) -> list[Path]:
 
 ### 14.1 `voice.py` — the pluggable TTS chain
 
-`TTS_ENGINES` is an **ordered** comma-separated list. Each engine is tried in turn; the first that produces a valid WAV wins.
+`TTS_ENGINES` is an **ordered** comma-separated list. Each engine is tried in turn; the first that produces a valid WAV wins. The default chain is `elevenlabs,piper,pyttsx3` — the paid, hosted ElevenLabs engine leads for narration quality, with Piper (local, offline, neural) and then pyttsx3 (whatever the OS provides) as free fallbacks if ElevenLabs is unreachable, unconfigured, or out of quota.
 
 ```mermaid
 flowchart TD
@@ -1553,10 +1556,13 @@ def _try_engine(name: str, text: str, output_path: Path) -> float:
 
 | Name | Implementation | Requirements |
 |---|---|---|
+| `elevenlabs` | `client.text_to_speech.convert(voice_id, model_id="eleven_turbo_v2_5", text, output_format="mp3_44100_128")`, then decoded to WAV | `ELEVENLABS_API_KEY` (and optionally `ELEVENLABS_VOICE_ID`, default `21m00Tcm4TlvDq8ikWAM` "Rachel"); `pip install elevenlabs`. Hosted, paid, highest-quality narration; needs network. |
 | `piper` | `PiperVoice.load(model).synthesize_wav(text, wave_handle)` | `PIPER_MODEL_PATH` → an `.onnx` file **with its `.onnx.json` sidecar alongside**; `pip install piper-tts`. Local, offline, no API key, no network at synthesis time. |
 | `pyttsx3` | `engine.save_to_file(); engine.runAndWait()` | whatever voices the OS already has; quality varies a lot |
 
-An engine signals "not usable here" by raising `TTSUnavailable`; anything else it raises is caught and logged identically.
+An engine signals "not usable here" by raising `TTSUnavailable`; anything else it raises is caught and logged identically, so an ElevenLabs failure (missing key, quota, network) silently falls through to Piper and then pyttsx3 rather than failing the run — the failover shows up in `warnings`, not as an error.
+
+**Decoding ElevenLabs' MP3.** Free/starter ElevenLabs tiers can only return MP3 (raw PCM needs a paid tier above Starter), but the rest of the pipeline — duration reads, the renderer — expects a plain WAV. `_mp3_bytes_to_wav()` pipes the MP3 bytes through the `ffmpeg` binary `imageio_ffmpeg` already bundles for video rendering (no extra install), writing to a real output path rather than a pipe: writing to `pipe:1` would leave ffmpeg unable to seek back and fill in the WAV header's real data size, so it would write a placeholder frame count that every downstream reader would trust as fact.
 
 **The silent fallback.** If no engine works, `write_silence()` uses the **stdlib `wave` module** (not numpy/moviepy) so it works even if the render dependencies are missing — a silent track should never be the thing that fails a run. Its length is `estimate_duration()`, which prefers the script's `estimated_duration_seconds` (a *measurement* from `schemas.script`, not a guess) and falls back to `word_count / words_per_second`.
 
@@ -1564,7 +1570,7 @@ The warning that reaches the reviewer:
 
 > No speech was synthesised — the voiceover track is silent. The video's timing still matches the script, so a real narration WAV of the same length can be dropped in without re-rendering anything else.
 
-**Adding a paid engine is one function and one registry entry** — nothing outside the module changes. The docstring carries a worked ElevenLabs example using the provided `write_pcm_wav()` helper (most hosted TTS APIs can return raw PCM).
+**Adding another engine is one function and one registry entry** — nothing outside the module changes.
 
 `VoiceoverResult` carries `path`, `duration_seconds`, `engine`, `spoken_text`, `warnings`, and an `is_silent` property that flows all the way through `_meta.json` to a banner on the review page.
 
@@ -2085,7 +2091,7 @@ Find it for ₹75,000 at Radboards.in. Range and speed vary.
 | 5 | cta | cta | 5 | 4.9 s | RADBOARDS.IN | — |
 
 ### Step 8 — `voiceover`
-Piper synthesised the joined `line` fields to a scratch WAV, header verified, moved into place: **22.37 s**, engine `piper`, `is_silent: false`.
+This walkthrough was captured without `ELEVENLABS_API_KEY` set, so the chain fell through to the first free engine: Piper synthesised the joined `line` fields to a scratch WAV, header verified, moved into place: **22.37 s**, engine `piper`, `is_silent: false`. With an ElevenLabs key configured, the same run would produce `engine: "elevenlabs"` instead, with the MP3 response decoded to WAV via ffmpeg before this step.
 
 ### Step 9 — `render_video`
 - Planned total: 22.9 s. Real audio: 22.37 s.
@@ -2268,7 +2274,7 @@ A dependency-ordered build sequence. Each step is independently testable.
 
 ### Phase 6 — media
 
-**16. `media/voice.py`.** WAV helpers (`write_silence`, `write_pcm_wav`, `wav_duration_seconds`) → the two engines → `ENGINES` registry → `_try_engine` with the scratch-file discipline → `generate_voiceover`.
+**16. `media/voice.py`.** WAV helpers (`write_silence`, `write_pcm_wav`, `wav_duration_seconds`) → the three engines (`elevenlabs`, `piper`, `pyttsx3`) → `ENGINES` registry → `_try_engine` with the scratch-file discipline → `generate_voiceover`.
 
 **17. `media/movie.py`.** The largest module; build bottom-up:
    1. geometry helpers (`ease_in_out_cubic`, `lerp`, `cover_box`, `contain_box`)
@@ -2418,7 +2424,7 @@ Compliance rules reach the model as prompt text but are not mechanically verifie
 | **`load_brand()` is cached for the process lifetime** | Editing `brand.yaml` requires a restart. `reload_brand()` exists but nothing in the app calls it. |
 | **Version-number race is possible in principle** | `next_version_number()` and `create_version()` are separate transactions. Under the single-worker model this cannot happen; `finalize` logs a warning if it ever does. |
 | **`_meta.json` is the only carry-forward source** | If that file is deleted or corrupted, `_carried_forward_payload` falls through to a normal LLM call — safe, but the scoping silently stops saving calls. |
-| **TTS quality** | Piper (local neural) is good but not broadcast quality; `pyttsx3` varies wildly by OS. A hosted engine is one function away. |
+| **TTS quality depends on what's configured** | ElevenLabs (default, paid, hosted) leads for narration quality; if its key is missing, unreachable, or out of quota, the chain falls back to Piper (local neural — good but not broadcast quality) and then `pyttsx3` (varies wildly by OS). |
 | **No i18n** | Prompts, brand file and UI are English-only. |
 | **Docs drift** | `README.md` and `CONTEXT.md` state 166 tests; the current collected count is 174. The sample `_meta.json` in `output/` predates the brand's script-duration change from `[25, 32]` to `[32, 40]`. |
 
