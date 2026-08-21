@@ -1,0 +1,47 @@
+=== Table14 FR (9.1): rows=19 cols=3 ===
+r0: ID || Functional requirement || Result
+r1: FR1 || Register a public Shopify product URL as a product, rejecting duplicates and unusable URLs || Verified
+r2: FR2 || Scrape title, description, price, compare-at price, image URLs and the specification table from the product's JSON endpoint || Verified
+r3: FR3 || Persist one scraped record per product, upserted rather than duplicated || Verified
+r4: FR4 || Queue generation jobs first-in-first-out and process one at a time || Verified
+r5: FR5 || Generate a campaign brief naming exactly one valid persona and at least three proof points, each attributed to a scraped source || Verified
+r6: FR6 || Generate a five-beat script, in the brand's beat order, whose recomputed spoken duration lies inside the brand's window || Verified
+r7: FR7 || Generate a caption within the character and first-line limits, containing a call to action and no hashtags || Verified
+r8: FR8 || Generate 8–12 lowercase hashtags including the mandatory brand tag and excluding all banned tags || Verified
+r9: FR9 || Generate a 5–7 scene shot plan opening on a title card and closing on a call-to-action card, with valid image indices and verbatim specification pills || Verified
+r10: FR10 || Synthesis narration through a pluggable chain of engines, falling back to a correctly-timed silent track that is flagged to the reviewer || Verified
+r11: FR11 || Render a 1080×1920 H.264 video whose duration equals the synthesised narration duration || Verified
+r12: FR12 || Write every artefact into an immutable version directory and create the version row only after all of them exist || Verified
+r13: FR13 || Present the version for human approval with its provenance visible || Verified
+r14: FR14 || On rejection with feedback and a scope, regenerate in-scope nodes and carry the rest forward byte-identically || Verified
+r15: FR15 || Never substitute placeholder content, fail with a diagnosable message instead || Verified
+r16: FR16 || Change the model provider by configuration alone || Verified
+r17: FR17 || Honour a cancellation request at the next stage boundary || Verified
+r18: FR18 || Guarantee that every job reaches a terminal state, including after a worker crash || Verified
+
+=== Table15 TC (9.2): rows=24 cols=4 ===
+r0: Test Case || FR || Description || Result
+r1: TC01 || FR1 || Duplicate URL — surfaced as "already exists"; no second row || Pass
+r2: TC03 || FR2 || Specification table removal — specifications stored separately from description text || Pass
+r3: TC04 || FR2 || First variant sold out — cheapest available variant selected || Pass
+r4: TC05 || FR3 || Re-scrape — existing product row overwritten rather than duplicated || Pass
+r5: TC06 || FR4 || Three queued jobs — oldest pending job returned first (FIFO) || Pass
+r6: TC08 || FR5 || Two proof points — rejected against the minimum of three || Pass
+r7: TC09 || FR6 || Script outside duration window — rejected with rewrite instruction || Pass
+r8: TC10 || FR6 || Inflated duration — duration recomputed from word count || Pass
+r9: TC11 || FR7 || First line over 70 characters — rejected based on actual text length || Pass
+r10: TC13 || FR9 || Out-of-range image index — wrapped modulo image count || Pass
+r11: TC14 || FR9 || Invalid opening title card — rejected with the relevant error || Pass
+r12: TC15 || FR10 || TTS engine failure — no partial WAV; fallback silent track generated || Pass
+r13: TC16 || FR11 || Narration shorter than plan — scenes rescaled to match audio duration || Pass
+r14: TC17 || FR14 || Script rejection — dependent caption, hashtags, and plan regenerated; brief carried forward || Pass
+r15: TC18 || FR14 || Hashtag rejection — four out-of-scope artefacts reused byte-identically || Pass
+r16: TC19 || FR14 || Multiple rejections — only the latest rejection drives the next run || Pass
+r17: TC21 || FR15 || Retry content — specific validation violation included in follow-up message || Pass
+r18: TC22 || FR16 || Placeholder key — treated as missing and error identifies the setting || Pass
+r19: TC23 || FR18 || Worker restart — orphaned job failed and active-job count returned to zero || Pass
+r20: TC24 || FR12, Live || End-to-end product run — ten files written and version row created last || Pass (9.5)
+r21: TC25 || FR11, Live || Audio/video synchronisation — rendered duration matched narration duration || Pass (9.6)
+r22: TC26 || FR5, Live || Claim traceability — every claim traced to specification, price, or description || Pass (9.6)
+r23: TC27 || FR15, Live || Caption exceeded limit after three attempts — job failed without creating a version or placeholder || Pass (9.5)
+
