@@ -28,14 +28,17 @@ from database.repository import (
 )
 from streamlit_app._shared import (
     STAGE_LABELS,
-    centered_title,
+    app_header,
     colored_button,
     hide_sidebar,
     inject_action_button_css,
     inject_spinner_css,
+    inject_theme_css,
     llm_configuration_banner,
+    row_marker,
     running_badge,
     stage_progress,
+    status_badge,
     tighten_top_padding,
 )
 from worker.autostart import ensure_worker_running
@@ -43,6 +46,7 @@ from worker.autostart import ensure_worker_running
 st.set_page_config(page_title="Dashboard", page_icon="\U0001F4E6", layout="wide")
 hide_sidebar()
 tighten_top_padding()
+inject_theme_css()
 inject_spinner_css()
 inject_action_button_css()
 st.markdown(
@@ -71,7 +75,7 @@ configure_logging()
 init_db()
 ensure_worker_running()
 
-centered_title("Dashboard")
+app_header("Dashboard")
 st.caption("Control center for product intake, pipeline runs and review.")
 
 # A missing or invalid API key makes every run fail eight nodes deep. Say so
@@ -135,6 +139,34 @@ if search_term.strip():
 # the resulting st.rerun().
 any_active_job = count_active_jobs() > 0
 
+RUNNABLE_STATUSES = {"Pending", "Failed", "Cancelled"}
+
+
+def action_label_for(p) -> str:
+    """The text on this row's Action button — used both to render it and, so
+    the Action column has something meaningful to sort by, as its sort key."""
+    if p.status == "Running":
+        return "Cancel"
+    if p.status == "Approved":
+        return "View Output"
+    if p.status in RUNNABLE_STATUSES:
+        return "Run" if p.status == "Pending" else "Retry"
+    return "Review"
+
+
+SORT_KEYS = {
+    "ID": lambda p: p.id,
+    "Name": lambda p: p.name.lower(),
+    "Status": lambda p: p.status,
+    "Last Updated": lambda p: p.updated_at,
+    "Rejections": lambda p: rejection_counts.get(p.id, 0),
+    "Action": lambda p: action_label_for(p),
+}
+
+sort_col = st.session_state.get("sort_col", "ID")
+sort_dir = st.session_state.get("sort_dir", "asc")
+filtered = sorted(filtered, key=SORT_KEYS[sort_col], reverse=(sort_dir == "desc"))
+
 if not products:
     st.info("No products yet. Use **Add Product** above to add one.")
 elif not filtered:
@@ -173,16 +205,27 @@ else:
                     st.session_state.pop("confirm_delete_id", None)
                     st.rerun()
 
+    row_marker("header")
     header = st.columns([0.5, 1.8, 2.4, 1.1, 0.8, 1.2, 0.7])
     for col, label in zip(
         header, ["ID", "Name", "Status", "Last Updated", "Rejections", "Action", "Delete"]
     ):
-        col.markdown(f"**{label}**")
+        if label not in SORT_KEYS:
+            col.markdown(label)
+            continue
+        arrow = "" if label != sort_col else (" ▲" if sort_dir == "asc" else " ▼")
+        if col.button(label + arrow, key=f"sort_{label}", use_container_width=True):
+            if sort_col == label:
+                st.session_state["sort_dir"] = "desc" if sort_dir == "asc" else "asc"
+            else:
+                st.session_state["sort_col"] = label
+                st.session_state["sort_dir"] = "asc"
+            st.rerun()
 
-    RUNNABLE_STATUSES = {"Pending", "Failed", "Cancelled"}
     should_poll = False
 
     for p in filtered:
+        row_marker("item")
         row = st.columns([0.5, 1.8, 2.4, 1.1, 0.8, 1.2, 0.7])
         row[0].write(f"#{p.id}")
 
@@ -196,7 +239,7 @@ else:
         else:
             row[1].markdown(f"[{p.name}]({p.url})")
             with row[2]:
-                st.write(p.status)
+                st.markdown(status_badge(p.status), unsafe_allow_html=True)
                 if p.status == "Failed":
                     # Surface exactly which pipeline node the job died on, plus
                     # the error, so a Failed row is actionable without digging
