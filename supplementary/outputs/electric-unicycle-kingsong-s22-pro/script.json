@@ -1,0 +1,33 @@
+{
+  "title": "KingSong S22 Pro: Conquer Any Trail",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Seeking ultimate adventure? This unicycle conquers India's toughest trails.",
+      "on_screen": "Ultimate Adventure."
+    },
+    {
+      "beat": "problem",
+      "line": "Most rides can't handle real off-road challenge. You need a machine built for true exploration.",
+      "on_screen": "Limits on your ride?"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Discover the KingSong S22 Pro. It's purpose-built for the ride to everywhere, from city to wild.",
+      "on_screen": "KingSong S22 Pro"
+    },
+    {
+      "beat": "proof",
+      "line": "With 130 mm spring suspension, an 8500W motor for 40-degree climbs, and up to 200 km range, it's built for serious adventure.",
+      "on_screen": "130mm Suspension, 8500W, 200km Range"
+    },
+    {
+      "beat": "cta",
+      "line": "The KingSong S22 Pro is ₹325,000. Order your adventure ride today at Radboards.in.",
+      "on_screen": "₹325,000\nRadboards.in\nRange, speed, charge vary."
+    }
+  ],
+  "estimated_duration_seconds": 31.2,
+  "word_count": 75,
+  "_source": "llm"
+}

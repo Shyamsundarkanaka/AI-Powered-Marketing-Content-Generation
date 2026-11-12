@@ -1,0 +1,33 @@
+{
+  "title": "Rover Off-Roader: Built for Adventure",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Ready to leave the pavement behind?",
+      "on_screen": "Explore Beyond Pavement"
+    },
+    {
+      "beat": "problem",
+      "line": "Your weekend ride deserves more than just smooth roads. Regular boards can't handle the real trails.",
+      "on_screen": "Not for Pavement Only"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Meet the Rover Off-Roader. Built for the ride to everywhere. It takes on any terrain.",
+      "on_screen": "Rover Off-Roader"
+    },
+    {
+      "beat": "proof",
+      "line": "Its deep-treaded tires grip pavement, grass, and dirt. Twin 350W hub motors climb slopes up to 10 degrees. Glide for 8 to 10 km on a single charge. Charge up fully in just 150 minutes. It holds up to 100 kg easily. All this for just ₹24,999. That's a saving from ₹32,000.",
+      "on_screen": "Range, speed, charge vary by conditions."
+    },
+    {
+      "beat": "cta",
+      "line": "Ready for your next adventure? Visit Radboards.in to explore the Rover.",
+      "on_screen": "Radboards.in"
+    }
+  ],
+  "estimated_duration_seconds": 41.7,
+  "word_count": 100,
+  "_source": "llm"
+}

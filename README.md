@@ -126,3 +126,16 @@ The rule is that a reviewer must never be shown something misleading.
 
 A failed run leaves no version row and no half-written output directory: the
 next run for that product cleans up whatever the failure left behind.
+
+## Evaluation material
+
+[`supplementary/`](supplementary/) holds the material behind the published
+evaluation: the brand rule file, the prompts and validators, the text outputs
+of the seven evaluated packages, the single-prompt baseline, the claim
+annotations, the result tables and the evaluation scripts. See
+[`supplementary/README.md`](supplementary/README.md) for the layout.
+
+## Project deliverables
+
+- Project report and final presentation: [`docs/capstone2_report/`](docs/capstone2_report/)
+- Demo video: [`docs/Demo.mp4`](docs/Demo.mp4)

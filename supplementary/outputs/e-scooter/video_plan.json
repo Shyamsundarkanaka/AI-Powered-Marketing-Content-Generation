@@ -1,0 +1,64 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 0,
+      "duration_seconds": 6.0,
+      "headline": "BEAT THE TRAFFIC",
+      "subline": "Your commute just got easier.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 3,
+      "duration_seconds": 6.0,
+      "headline": "PREDICTABLE COMMUTE",
+      "subline": "No more delays. Arrive on time, every time.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 1,
+      "duration_seconds": 6.0,
+      "headline": "SHOCKWAVE V1 PRO",
+      "subline": "Built for the ride to everywhere.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 4,
+      "duration_seconds": 7.7,
+      "headline": "BUILT TO LAST",
+      "subline": "Dependable tech for real Indian streets.",
+      "spec_pills": [
+        {
+          "label": "Load Capacity",
+          "value": "120 kg"
+        },
+        {
+          "label": "Range",
+          "value": "Up to 30 km"
+        },
+        {
+          "label": "Tires",
+          "value": "8.5-inch Puncture-Proof"
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 2,
+      "duration_seconds": 6.0,
+      "headline": "RADBOARDS.IN",
+      "subline": "Get yours today for ₹45,000.",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 31.7,
+  "_source": "llm"
+}

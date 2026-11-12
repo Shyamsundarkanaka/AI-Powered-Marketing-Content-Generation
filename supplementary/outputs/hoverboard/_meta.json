@@ -1,0 +1,204 @@
+{
+  "product_id": 8,
+  "job_id": 11,
+  "version_id": 6,
+  "version_number": 1,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "sources": {
+    "campaign_brief": "llm",
+    "script": "llm",
+    "caption": "llm",
+    "hashtags": "llm",
+    "video_plan": "llm",
+    "voiceover": "elevenlabs",
+    "video": "render"
+  },
+  "warnings": [],
+  "revision_of_feedback": null,
+  "content": {
+    "campaign_brief": {
+      "objective": "Drive engagement and click-throughs to the product page for the Rover Off-Roader.",
+      "target_persona": "weekend-explorer",
+      "persona_rationale": "The Rover Off-Roader's robust build, dual motors, and off-road capabilities directly address the weekend explorer's desire for adventure and performance on varied terrain.",
+      "key_message": "The Rover Off-Roader is built to tackle diverse Indian terrain, offering power and fun for weekend adventures.",
+      "proof_points": [
+        {
+          "claim": "Deep-treaded solid rubber tires glide over pavement, grass, or dirt.",
+          "source": "description: 'Whether it's the pavement, grass, or dirt, it delivers top-of-the-line performance always.'"
+        },
+        {
+          "claim": "Twin 350W hub motors climb slopes up to 10 degrees.",
+          "source": "specs: 'Motor: 2 × 350W Hub Motor' and 'Gradability: 10°'"
+        },
+        {
+          "claim": "Charge in 150 minutes for more time riding.",
+          "source": "specs: 'Charging Time: 150 mins'"
+        },
+        {
+          "claim": "Priced at ₹24,999, a saving from ₹32,000.",
+          "source": "price: '₹24,999' and compare_at_price: '₹32,000'"
+        }
+      ],
+      "channels": [
+        "Instagram",
+        "YouTube Shorts"
+      ],
+      "success_metric": "Click-through rate to product page",
+      "_source": "llm"
+    },
+    "script": {
+      "title": "Rover Off-Roader: Built for Adventure",
+      "beats": [
+        {
+          "beat": "hook",
+          "line": "Ready to leave the pavement behind?",
+          "on_screen": "Explore Beyond Pavement"
+        },
+        {
+          "beat": "problem",
+          "line": "Your weekend ride deserves more than just smooth roads. Regular boards can't handle the real trails.",
+          "on_screen": "Not for Pavement Only"
+        },
+        {
+          "beat": "product_reveal",
+          "line": "Meet the Rover Off-Roader. Built for the ride to everywhere. It takes on any terrain.",
+          "on_screen": "Rover Off-Roader"
+        },
+        {
+          "beat": "proof",
+          "line": "Its deep-treaded tires grip pavement, grass, and dirt. Twin 350W hub motors climb slopes up to 10 degrees. Glide for 8 to 10 km on a single charge. Charge up fully in just 150 minutes. It holds up to 100 kg easily. All this for just ₹24,999. That's a saving from ₹32,000.",
+          "on_screen": "Range, speed, charge vary by conditions."
+        },
+        {
+          "beat": "cta",
+          "line": "Ready for your next adventure? Visit Radboards.in to explore the Rover.",
+          "on_screen": "Radboards.in"
+        }
+      ],
+      "estimated_duration_seconds": 41.7,
+      "word_count": 100,
+      "_source": "llm"
+    },
+    "caption": {
+      "caption": "Potholes, grass, or dirt? Rover Off-Roader takes it all. ⛰️\nThis board is built for more. Deep-treaded tires grip any surface. Twin 350W motors climb 10° slopes easily. Get 8–10 km range. Charge in 150 mins. Holds up to 100 kg. Find your adventure for ₹24,999. Link in bio!",
+      "first_line": "Potholes, grass, or dirt? Rover Off-Roader takes it all. ⛰️",
+      "cta": "Link in bio!",
+      "char_count": 273,
+      "_source": "llm"
+    },
+    "hashtags": {
+      "hashtags": [
+        "#radboards",
+        "#roveroffroader",
+        "#offroadride",
+        "#weekendadventure",
+        "#hoverboardindia",
+        "#indiarides",
+        "#exploreindia",
+        "#outdoorfun",
+        "#builtforindia",
+        "#electricmobility"
+      ],
+      "rationale": "The selected hashtags combine brand and product specificity with broader category terms and audience-centric keywords focused on adventure and off-road riding in India, without looking desperate.",
+      "_source": "llm"
+    },
+    "video_plan": {
+      "scenes": [
+        {
+          "kind": "title",
+          "beat": "hook",
+          "image_index": 1,
+          "duration_seconds": 7.0,
+          "headline": "EXPLORE BEYOND PAVEMENT",
+          "subline": "Your next adventure starts here.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "problem",
+          "image_index": 5,
+          "duration_seconds": 7.0,
+          "headline": "NOT FOR PAVEMENT ONLY",
+          "subline": "Built to take on real Indian streets.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "product_reveal",
+          "image_index": 0,
+          "duration_seconds": 7.0,
+          "headline": "MEET THE ROVER",
+          "subline": "Built for the ride to everywhere.",
+          "spec_pills": []
+        },
+        {
+          "kind": "spec",
+          "beat": "proof",
+          "image_index": 7,
+          "duration_seconds": 8.0,
+          "headline": "POWER FOR ANY RIDE",
+          "subline": "Range, speed, charge vary by conditions.",
+          "spec_pills": [
+            {
+              "label": "Range",
+              "value": "8–10 km per charge"
+            },
+            {
+              "label": "Gradability",
+              "value": "10°"
+            },
+            {
+              "label": "Weight Capacity",
+              "value": "100 kg"
+            }
+          ]
+        },
+        {
+          "kind": "feature",
+          "beat": "proof",
+          "image_index": 3,
+          "duration_seconds": 6.0,
+          "headline": "GET YOUR ROVER TODAY",
+          "subline": "Yours for ₹24,999. Save from ₹32,000.",
+          "spec_pills": []
+        },
+        {
+          "kind": "cta",
+          "beat": "cta",
+          "image_index": 2,
+          "duration_seconds": 6.7,
+          "headline": "RADBOARDS.IN",
+          "subline": "Explore the Rover Off-Roader.",
+          "spec_pills": []
+        }
+      ],
+      "total_duration_seconds": 41.7,
+      "_source": "llm"
+    },
+    "voiceover": {
+      "file_path": "output\\hoverboard\\v1\\voiceover.wav",
+      "duration_seconds": 36.52,
+      "engine": "elevenlabs",
+      "is_silent": false,
+      "spoken_text": "Ready to leave the pavement behind? Your weekend ride deserves more than just smooth roads. Regular boards can't handle the real trails. Meet the Rover Off-Roader. Built for the ride to everywhere. It takes on any terrain. Its deep-treaded tires grip pavement, grass, and dirt. Twin 350W hub motors climb slopes up to 10 degrees. Glide for 8 to 10 km on a single charge. Charge up fully in just 150 minutes. It holds up to 100 kg easily. All this for just ₹24,999. That's a saving from ₹32,000. Ready for your next adventure? Visit Radboards.in to explore the Rover.",
+      "warnings": [],
+      "beat_durations": [
+        2.065,
+        5.121,
+        4.938,
+        20.063,
+        4.337
+      ]
+    },
+    "video": {
+      "file_path": "output\\hoverboard\\v1\\video.mp4",
+      "duration_seconds": 34.72,
+      "resolution": "1080x1920",
+      "fps": 30,
+      "scene_count": 6,
+      "has_audio": true,
+      "warnings": []
+    }
+  }
+}

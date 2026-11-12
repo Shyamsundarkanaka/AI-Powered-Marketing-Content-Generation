@@ -1,0 +1,33 @@
+{
+  "title": "Radboards Shockwave V1 Pro: Your Commute Solved",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Tired of traffic and long walks to work?",
+      "on_screen": "Beat the traffic."
+    },
+    {
+      "beat": "problem",
+      "line": "Your commute needs to be fast and reliable. Forget bumpy roads or low battery stress.",
+      "on_screen": "Predictable commute."
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Meet the Radboards Shockwave V1 Pro. Built for the ride to everywhere.",
+      "on_screen": "Shockwave V1 Pro."
+    },
+    {
+      "beat": "proof",
+      "line": "It folds fast, made from aluminum. Carry it easily. Glide up to 30 km on a charge. Dual suspension handles bumpy streets. Puncture-proof tires give grip. Range varies with rider and terrain.",
+      "on_screen": "Built to last. Up to 30 km."
+    },
+    {
+      "beat": "cta",
+      "line": "Get your dependable ride for ₹45,000 today. Visit Radboards.in.",
+      "on_screen": "Radboards.in ₹45,000."
+    }
+  ],
+  "estimated_duration_seconds": 31.7,
+  "word_count": 76,
+  "_source": "llm"
+}

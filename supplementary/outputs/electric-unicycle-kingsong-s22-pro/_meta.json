@@ -1,0 +1,190 @@
+{
+  "product_id": 5,
+  "job_id": 6,
+  "version_id": 2,
+  "version_number": 1,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "sources": {
+    "campaign_brief": "llm",
+    "script": "llm",
+    "caption": "llm",
+    "hashtags": "llm",
+    "video_plan": "llm",
+    "voiceover": "elevenlabs",
+    "video": "render"
+  },
+  "warnings": [
+    "script: needed 3 attempts (the script is 70 words, about 29 seconds when spoken at 2.4 words per second. It must land between 32 and 40 seconds — rewrite it longer and keep all 5 beats.)"
+  ],
+  "revision_of_feedback": null,
+  "content": {
+    "campaign_brief": {
+      "objective": "Drive awareness and consideration for the KingSong S22 Pro electric unicycle among adventure riders.",
+      "target_persona": "weekend-explorer",
+      "persona_rationale": "The high price point and advanced off-road features of the KingSong S22 Pro align perfectly with the weekend explorer's desire for real torque and off-road capability.",
+      "key_message": "Experience powerful off-road rides with the KingSong S22 Pro, built for adventure.",
+      "proof_points": [
+        {
+          "claim": "The S22 Pro features a spring suspension system with 130mm of travel, designed for smooth rides over rough ground.",
+          "source": "description: 'The KingSong S22 Pro has a spring suspension system with 130mm of travel. This suspension system is designed to provide a smooth and comfortable ride over rough terrain.'"
+        },
+        {
+          "claim": "It delivers serious power with an 8500W max power motor, enabling a 40° gradability.",
+          "source": "specs: 'Max Power: 8500W', 'Gradability: 40°'"
+        },
+        {
+          "claim": "Ride further with a mileage of up to 200 km on a single charge.",
+          "source": "specs: 'Mileage: 180–200 km'"
+        },
+        {
+          "claim": "The unicycle has an eight-LED adjustable headlight and two bright tail lights for visibility.",
+          "source": "description: 'The KingSong S22 Pro has an eight-LED headlight that can be adjusted up to 15 degrees. This headlight provides excellent visibility for night riding. The headlight also has a brake light and turn signals. The EUC has two tail lights that are located on the back of the unicycle. The tail lights are bright and visible, and they can be used to indicate your braking and turning intentions to other road users.'"
+        }
+      ],
+      "channels": [
+        "instagram_reels",
+        "youtube_shorts"
+      ],
+      "success_metric": "Video views and click-through rate to product page.",
+      "_source": "llm"
+    },
+    "script": {
+      "title": "KingSong S22 Pro: Conquer Any Trail",
+      "beats": [
+        {
+          "beat": "hook",
+          "line": "Seeking ultimate adventure? This unicycle conquers India's toughest trails.",
+          "on_screen": "Ultimate Adventure."
+        },
+        {
+          "beat": "problem",
+          "line": "Most rides can't handle real off-road challenge. You need a machine built for true exploration.",
+          "on_screen": "Limits on your ride?"
+        },
+        {
+          "beat": "product_reveal",
+          "line": "Discover the KingSong S22 Pro. It's purpose-built for the ride to everywhere, from city to wild.",
+          "on_screen": "KingSong S22 Pro"
+        },
+        {
+          "beat": "proof",
+          "line": "With 130 mm spring suspension, an 8500W motor for 40-degree climbs, and up to 200 km range, it's built for serious adventure.",
+          "on_screen": "130mm Suspension, 8500W, 200km Range"
+        },
+        {
+          "beat": "cta",
+          "line": "The KingSong S22 Pro is ₹325,000. Order your adventure ride today at Radboards.in.",
+          "on_screen": "₹325,000\nRadboards.in\nRange, speed, charge vary."
+        }
+      ],
+      "estimated_duration_seconds": 31.2,
+      "word_count": 75,
+      "_source": "llm"
+    },
+    "caption": {
+      "caption": "Ready for real trails? The S22 Pro tackles anything. 🚵♂️\nWith 130mm suspension and 8500W max power, it glides over rough ground. Get up to 200 km range for your weekend explorations. This ride holds up. ₹325,000. Order yours today! Radboards.in",
+      "first_line": "Ready for real trails? The S22 Pro tackles anything. 🚵♂️",
+      "cta": "Order yours today! Radboards.in",
+      "char_count": 244,
+      "_source": "llm"
+    },
+    "hashtags": {
+      "hashtags": [
+        "#radboards",
+        "#kingsongs22pro",
+        "#euc",
+        "#electricunicycle",
+        "#offroadride",
+        "#adventureonewheel",
+        "#indiarides",
+        "#powerride",
+        "#rideeverywhere",
+        "#terrainmaster"
+      ],
+      "rationale": "The hashtags include the mandatory brand tag, specific product tags, relevant category terms, and audience-focused tags that speak to off-road adventure and the Indian riding context, adhering to the brand's style and quantity rules.",
+      "_source": "llm"
+    },
+    "video_plan": {
+      "scenes": [
+        {
+          "kind": "title",
+          "beat": "hook",
+          "image_index": 1,
+          "duration_seconds": 6.0,
+          "headline": "YOUR ULTIMATE ADVENTURE STARTS HERE",
+          "subline": "Conquer India's toughest trails.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "problem",
+          "image_index": 4,
+          "duration_seconds": 6.0,
+          "headline": "LIMITS ON YOUR RIDE?",
+          "subline": "Most rides can't handle real challenge.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "product_reveal",
+          "image_index": 0,
+          "duration_seconds": 6.0,
+          "headline": "KINGSONG S22 PRO",
+          "subline": "Built for the ride to everywhere.",
+          "spec_pills": []
+        },
+        {
+          "kind": "spec",
+          "beat": "proof",
+          "image_index": 5,
+          "duration_seconds": 7.0,
+          "headline": "BUILT FOR SERIOUS ADVENTURE",
+          "subline": "Power, range, and suspension for any terrain.",
+          "spec_pills": [
+            {
+              "label": "Suspension Travel",
+              "value": "130 mm"
+            },
+            {
+              "label": "Max Power",
+              "value": "8500W"
+            },
+            {
+              "label": "Mileage",
+              "value": "180–200 km"
+            }
+          ]
+        },
+        {
+          "kind": "cta",
+          "beat": "cta",
+          "image_index": 9,
+          "duration_seconds": 6.2,
+          "headline": "GET YOURS FOR ₹325,000",
+          "subline": "Order today at Radboards.in",
+          "spec_pills": []
+        }
+      ],
+      "total_duration_seconds": 31.2,
+      "_source": "llm"
+    },
+    "voiceover": {
+      "file_path": "output\\electric-unicycle-kingsong-s22-pro\\v1\\voiceover.wav",
+      "duration_seconds": 33.49,
+      "engine": "elevenlabs",
+      "is_silent": false,
+      "spoken_text": "Seeking ultimate adventure? This unicycle conquers India's toughest trails. Most rides can't handle real off-road challenge. You need a machine built for true exploration. Discover the KingSong S22 Pro. It's purpose-built for the ride to everywhere, from city to wild. With 130 mm spring suspension, an 8500W motor for 40-degree climbs, and up to 200 km range, it's built for serious adventure. The KingSong S22 Pro is ₹325,000. Order your adventure ride today at Radboards.in.",
+      "warnings": []
+    },
+    "video": {
+      "file_path": "output\\electric-unicycle-kingsong-s22-pro\\v1\\video.mp4",
+      "duration_seconds": 33.49,
+      "resolution": "1080x1920",
+      "fps": 30,
+      "scene_count": 5,
+      "has_audio": true,
+      "warnings": []
+    }
+  }
+}

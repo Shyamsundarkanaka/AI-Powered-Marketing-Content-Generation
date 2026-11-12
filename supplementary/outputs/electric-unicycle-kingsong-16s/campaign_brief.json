@@ -1,0 +1,31 @@
+{
+  "objective": "Promote the KingSong 16S Electric Unicycle as a high-performance option for adventurous exploration.",
+  "target_persona": "weekend-explorer",
+  "persona_rationale": "The KingSong 16S EUC's powerful motor, robust wheel, and long range directly address the weekend-explorer's desire for off-road capability, real torque, and durable build quality for recreational rides.",
+  "key_message": "The KingSong 16S Electric Unicycle delivers powerful, long-range rides built for diverse terrain and open roads.",
+  "proof_points": [
+    {
+      "claim": "Glide over rough terrain with the 16-inch wheel.",
+      "source": "description: \"The 16-inch wheel size provides a smooth ride over even the roughest terrain\""
+    },
+    {
+      "claim": "Power through hills with a 3000W max power motor and 30° gradability.",
+      "source": "specs: \"Max Power: 3000W\", \"Gradability: 30°\""
+    },
+    {
+      "claim": "Explore for up to 75 kilometers on a single charge.",
+      "source": "description: \"840Wh battery that can provide a range of up to 75 kilometers on a single charge\""
+    },
+    {
+      "claim": "Enjoy your playlist on the go with built-in Bluetooth speakers.",
+      "source": "description: \"four built-in speakers that can be used to play music or other audio. The speakers can be connected to a smartphone or other device via Bluetooth.\""
+    }
+  ],
+  "channels": [
+    "instagram reels",
+    "youtube shorts",
+    "facebook watch"
+  ],
+  "success_metric": "engagement rate and click-throughs to product page",
+  "_source": "llm"
+}

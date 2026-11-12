@@ -1,0 +1,8 @@
+slug,model,status,seconds,prompt_tokens,output_tokens,thinking_tokens
+e-scooter,gemini-2.5-flash,ok,26.4,2279,855,4490
+electric-unicycle-kingsong-14d,gemini-2.5-flash,ok,37.6,2468,1019,6738
+electric-unicycle-kingsong-s16,gemini-2.5-flash,ok,28.9,2325,1161,4914
+electric-unicycle-kingsong-s22-pro,gemini-2.5-flash,ok,28.6,2475,958,5047
+hoverboard,gemini-2.5-flash,ok,24.8,2258,1012,4101
+classic-6-5-limited-edition,gemini-2.5-flash,ok,30.1,2271,1051,5204
+electric-unicycle-kingsong-16s,gemini-2.5-flash,ok,30.8,2573,857,5632

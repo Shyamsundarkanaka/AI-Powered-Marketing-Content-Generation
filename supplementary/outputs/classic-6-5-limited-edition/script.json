@@ -1,0 +1,33 @@
+{
+  "title": "Campus Commute: Radboards Classic 6.5 Hoverboard",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Campus walks dragging you down?",
+      "on_screen": "Campus life, simplified."
+    },
+    {
+      "beat": "problem",
+      "line": "Wasting time between classes is over.",
+      "on_screen": "No more walking!"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Meet the Radboards Classic 6.5 Inch Hoverboard.",
+      "on_screen": "Radboards Classic 6.5"
+    },
+    {
+      "beat": "proof",
+      "line": "Glide up to 15 km/h for quick campus hops. Play your favorite music on built-in Bluetooth speakers. Auto-balancing and anti-slip pads ensure stable rides. It weighs just 7-8 kg, easy to carry. Conquer 15-degree slopes. Ride up to 10 km per charge. Fully charged in 120 minutes. Get it for ₹16,999. EMI options start from ₹817 per month.",
+      "on_screen": "Fast. Fun. Stable. Affordable."
+    },
+    {
+      "beat": "cta",
+      "line": "Ready to glide? Visit Radboards.in today.",
+      "on_screen": "Radboards.in"
+    }
+  ],
+  "estimated_duration_seconds": 34.2,
+  "word_count": 82,
+  "_source": "llm"
+}

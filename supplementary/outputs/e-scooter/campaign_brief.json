@@ -1,0 +1,30 @@
+{
+  "objective": "Generate awareness and drive traffic to the product page for the Shockwave V1 Pro kick scooter.",
+  "target_persona": "urban-commuter",
+  "persona_rationale": "The Shockwave V1 Pro's portability, durable build, and reliable range directly address the urban commuter's need for a predictable, hassle-free last-mile solution.",
+  "key_message": "The Shockwave V1 Pro is built for dependable daily commutes, offering a smooth ride and easy portability for navigating city life.",
+  "proof_points": [
+    {
+      "claim": "Folds quickly and is lightweight for easy storage or carrying up to your flat.",
+      "source": "description: 'Lightweight & Foldable with 120 kg Load Capacity – Made from high-strength 6061 aluminum alloy, this electric kick scooter is both lightweight and durable. Its foldable design allows for quick and easy storage or transport—perfect for daily commutes, school runs, work, or weekend getaways.'"
+    },
+    {
+      "claim": "Dual suspension ensures a smooth and stable ride, even on bumpy roads.",
+      "source": "description: 'Dual Suspension for Enhanced Comfort – Built to handle rough terrain, this electric kick scooter comes with both front suspension and rear damping suspension, ensuring a smooth and stable ride even on bumpy roads.'"
+    },
+    {
+      "claim": "Offers up to 30 km on a single charge, minimizing frequent recharging.",
+      "source": "description: 'Long-Range Battery for Daily Commute – With a high-capacity 8Ah lithium-ion battery, this electrick kick scooter offers up to 30 km on a single charge, minimizing the need for frequent recharging.'"
+    },
+    {
+      "claim": "Puncture-proof 8.5-inch solid tires provide better grip and smooth handling on city streets.",
+      "source": "description: 'Durable 8.5-Inch Puncture-Proof Tires – Enjoy a stable and comfortable ride with shock-absorbing, honeycomb 8.5-inch solid tires. Designed for better grip and smooth handling across city roads and varied terrain.'"
+    }
+  ],
+  "channels": [
+    "instagram_reels",
+    "youtube_shorts"
+  ],
+  "success_metric": "Clicks to product page and video completion rate.",
+  "_source": "llm"
+}

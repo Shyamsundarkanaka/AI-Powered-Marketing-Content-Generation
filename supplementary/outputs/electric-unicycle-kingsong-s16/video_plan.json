@@ -1,0 +1,64 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 3,
+      "duration_seconds": 6.0,
+      "headline": "CONQUER ANY TERRAIN",
+      "subline": "Built for the ride to everywhere.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 8,
+      "duration_seconds": 6.0,
+      "headline": "BEYOND PAVED ROADS",
+      "subline": "No limits on your adventure.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 0,
+      "duration_seconds": 5.0,
+      "headline": "KINGSONG S16 PRO",
+      "subline": "Your next adventure starts here.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 1,
+      "duration_seconds": 10.0,
+      "headline": "UNMATCHED PERFORMANCE",
+      "subline": "Power and stability for every ride.",
+      "spec_pills": [
+        {
+          "label": "Rated Power",
+          "value": "3000W"
+        },
+        {
+          "label": "Gradability",
+          "value": "48°"
+        },
+        {
+          "label": "Suspension Travel",
+          "value": "88 mm"
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 10,
+      "duration_seconds": 4.7,
+      "headline": "RADBOARDS.IN",
+      "subline": "Explore the KingSong S16 Pro today.",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 31.7,
+  "_source": "llm"
+}

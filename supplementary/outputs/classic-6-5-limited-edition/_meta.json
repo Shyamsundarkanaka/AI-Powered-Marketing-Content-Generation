@@ -1,0 +1,202 @@
+{
+  "product_id": 11,
+  "job_id": 24,
+  "version_id": 10,
+  "version_number": 1,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "sources": {
+    "campaign_brief": "llm",
+    "script": "llm",
+    "caption": "llm",
+    "hashtags": "llm",
+    "video_plan": "llm",
+    "voiceover": "piper",
+    "video": "render"
+  },
+  "warnings": [
+    "script: needed 2 attempts (\"beats\" must contain exactly 5 entries whose \"beat\" values are, in this order: hook, problem, product_reveal, proof, cta. You gave: hook, problem, product_reveal, proof, proof, proof, proof, proof, proof, proof, proof, proof, cta.)",
+    "elevenlabs failed: ApiError: status_code: 401, body: {'detail': {'type': 'authentication_error', 'code': 'unauthorized', 'message': 'Invalid API key', 'status': 'invalid_api_key', 'request_id': 'c5be7ba539d548c7da23d5f44daa8174'}}"
+  ],
+  "revision_of_feedback": null,
+  "content": {
+    "campaign_brief": {
+      "objective": "Drive awareness and sales for the Classic 6.5 Inch Limited Edition Hoverboard among campus riders.",
+      "target_persona": "campus-rider",
+      "persona_rationale": "The hoverboard's fun features, speed, style, and accessible price point with EMI options directly address the campus-rider's needs and concerns for campus commutes and social appeal.",
+      "key_message": "Glide across campus with ease and style, making every hop between classes fun.",
+      "proof_points": [
+        {
+          "claim": "Reach up to 15 km/h for quick campus hops.",
+          "source": "Top Speed: 15 km/h (specs)"
+        },
+        {
+          "claim": "Play your favorite music on the go with built-in Bluetooth speakers.",
+          "source": "It comes with built-in BlueTooth speakers (description)"
+        },
+        {
+          "claim": "Ride with confidence thanks to auto-balancing and wide anti-slip foot pads.",
+          "source": "auto-balancing system levels itself on the ground"
+        },
+        {
+          "claim": "Get the Classic 6.5 for ₹16,999, with EMI options starting from ₹817/month.",
+          "source": "price: ₹16,999 (scraped data) and EMI Options Starting from ₹817/month (description)"
+        }
+      ],
+      "channels": [
+        "Instagram Reels",
+        "YouTube Shorts",
+        "Facebook Reels"
+      ],
+      "success_metric": "Click-throughs to product page",
+      "_source": "llm"
+    },
+    "script": {
+      "title": "Campus Commute: Radboards Classic 6.5 Hoverboard",
+      "beats": [
+        {
+          "beat": "hook",
+          "line": "Campus walks dragging you down?",
+          "on_screen": "Campus life, simplified."
+        },
+        {
+          "beat": "problem",
+          "line": "Wasting time between classes is over.",
+          "on_screen": "No more walking!"
+        },
+        {
+          "beat": "product_reveal",
+          "line": "Meet the Radboards Classic 6.5 Inch Hoverboard.",
+          "on_screen": "Radboards Classic 6.5"
+        },
+        {
+          "beat": "proof",
+          "line": "Glide up to 15 km/h for quick campus hops. Play your favorite music on built-in Bluetooth speakers. Auto-balancing and anti-slip pads ensure stable rides. It weighs just 7-8 kg, easy to carry. Conquer 15-degree slopes. Ride up to 10 km per charge. Fully charged in 120 minutes. Get it for ₹16,999. EMI options start from ₹817 per month.",
+          "on_screen": "Fast. Fun. Stable. Affordable."
+        },
+        {
+          "beat": "cta",
+          "line": "Ready to glide? Visit Radboards.in today.",
+          "on_screen": "Radboards.in"
+        }
+      ],
+      "estimated_duration_seconds": 34.2,
+      "word_count": 82,
+      "_source": "llm"
+    },
+    "caption": {
+      "caption": "Your campus hops just got a major upgrade. 🤩\nZip between classes at 15 km/h. Play your favourite tunes with built-in Bluetooth. Super easy to ride with auto-balancing. Weighs just 7-8kg. Get yours for ₹16,999. EMI from ₹817/month. Range, speed and charge-time figures vary. Shop now!",
+      "first_line": "Your campus hops just got a major upgrade. 🤩",
+      "cta": "Shop now!",
+      "char_count": 283,
+      "_source": "llm"
+    },
+    "hashtags": {
+      "hashtags": [
+        "#radboards",
+        "#classic65",
+        "#hoverboard",
+        "#electricride",
+        "#personalmobility",
+        "#campuscommute",
+        "#studentlife",
+        "#indiarides",
+        "#funride",
+        "#collegelife",
+        "#quickhops"
+      ],
+      "rationale": "Selected a mix of brand, product, category, and audience-specific hashtags relevant to campus riders in India, ensuring lowercase and adherence to banned word list.",
+      "_source": "llm"
+    },
+    "video_plan": {
+      "scenes": [
+        {
+          "kind": "title",
+          "beat": "hook",
+          "image_index": 7,
+          "duration_seconds": 4.0,
+          "headline": "CAMPUS LIFE, SIMPLIFIED.",
+          "subline": "No more long walks between classes.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "problem",
+          "image_index": 0,
+          "duration_seconds": 4.0,
+          "headline": "NO MORE WALKING!",
+          "subline": "Glide past those long campus commutes.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "product_reveal",
+          "image_index": 8,
+          "duration_seconds": 5.0,
+          "headline": "RADBOARDS CLASSIC 6.5",
+          "subline": "Your new ride to everywhere.",
+          "spec_pills": []
+        },
+        {
+          "kind": "spec",
+          "beat": "proof",
+          "image_index": 1,
+          "duration_seconds": 18.2,
+          "headline": "FAST. FUN. STABLE. AFFORDABLE.",
+          "subline": "Starting at ₹16,999. EMI from ₹817/month.",
+          "spec_pills": [
+            {
+              "label": "TOP SPEED",
+              "value": "15 km/h"
+            },
+            {
+              "label": "RANGE",
+              "value": "8–10 km per charge"
+            },
+            {
+              "label": "CHARGE TIME",
+              "value": "120 mins"
+            }
+          ]
+        },
+        {
+          "kind": "cta",
+          "beat": "cta",
+          "image_index": 9,
+          "duration_seconds": 3.0,
+          "headline": "RADBOARDS.IN",
+          "subline": "Visit today to start your new ride.",
+          "spec_pills": []
+        }
+      ],
+      "total_duration_seconds": 34.2,
+      "_source": "llm"
+    },
+    "voiceover": {
+      "file_path": "output\\classic-6-5-limited-edition\\v1\\voiceover.wav",
+      "duration_seconds": 36.01,
+      "engine": "piper",
+      "is_silent": false,
+      "spoken_text": "Campus walks dragging you down? Wasting time between classes is over. Meet the Radboards Classic 6.5 Inch Hoverboard. Glide up to 15 km/h for quick campus hops. Play your favorite music on built-in Bluetooth speakers. Auto-balancing and anti-slip pads ensure stable rides. It weighs just 7-8 kg, easy to carry. Conquer 15-degree slopes. Ride up to 10 km per charge. Fully charged in 120 minutes. Get it for ₹16,999. EMI options start from ₹817 per month. Ready to glide? Visit Radboards.in today.",
+      "warnings": [
+        "elevenlabs failed: ApiError: status_code: 401, body: {'detail': {'type': 'authentication_error', 'code': 'unauthorized', 'message': 'Invalid API key', 'status': 'invalid_api_key', 'request_id': 'c5be7ba539d548c7da23d5f44daa8174'}}"
+      ],
+      "beat_durations": [
+        1.73,
+        2.125,
+        3.32,
+        25.879,
+        2.961
+      ]
+    },
+    "video": {
+      "file_path": "output\\classic-6-5-limited-edition\\v1\\video.mp4",
+      "duration_seconds": 34.22,
+      "resolution": "1080x1920",
+      "fps": 30,
+      "scene_count": 5,
+      "has_audio": true,
+      "warnings": []
+    }
+  }
+}

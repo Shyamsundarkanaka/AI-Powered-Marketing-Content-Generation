@@ -1,0 +1,64 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 1,
+      "duration_seconds": 6.0,
+      "headline": "YOUR ULTIMATE ADVENTURE STARTS HERE",
+      "subline": "Conquer India's toughest trails.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 4,
+      "duration_seconds": 6.0,
+      "headline": "LIMITS ON YOUR RIDE?",
+      "subline": "Most rides can't handle real challenge.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 0,
+      "duration_seconds": 6.0,
+      "headline": "KINGSONG S22 PRO",
+      "subline": "Built for the ride to everywhere.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 5,
+      "duration_seconds": 7.0,
+      "headline": "BUILT FOR SERIOUS ADVENTURE",
+      "subline": "Power, range, and suspension for any terrain.",
+      "spec_pills": [
+        {
+          "label": "Suspension Travel",
+          "value": "130 mm"
+        },
+        {
+          "label": "Max Power",
+          "value": "8500W"
+        },
+        {
+          "label": "Mileage",
+          "value": "180–200 km"
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 9,
+      "duration_seconds": 6.2,
+      "headline": "GET YOURS FOR ₹325,000",
+      "subline": "Order today at Radboards.in",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 31.2,
+  "_source": "llm"
+}

@@ -1,0 +1,31 @@
+{
+  "objective": "Drive awareness and sales for the Classic 6.5 Inch Limited Edition Hoverboard among campus riders.",
+  "target_persona": "campus-rider",
+  "persona_rationale": "The hoverboard's fun features, speed, style, and accessible price point with EMI options directly address the campus-rider's needs and concerns for campus commutes and social appeal.",
+  "key_message": "Glide across campus with ease and style, making every hop between classes fun.",
+  "proof_points": [
+    {
+      "claim": "Reach up to 15 km/h for quick campus hops.",
+      "source": "Top Speed: 15 km/h (specs)"
+    },
+    {
+      "claim": "Play your favorite music on the go with built-in Bluetooth speakers.",
+      "source": "It comes with built-in BlueTooth speakers (description)"
+    },
+    {
+      "claim": "Ride with confidence thanks to auto-balancing and wide anti-slip foot pads.",
+      "source": "auto-balancing system levels itself on the ground"
+    },
+    {
+      "claim": "Get the Classic 6.5 for ₹16,999, with EMI options starting from ₹817/month.",
+      "source": "price: ₹16,999 (scraped data) and EMI Options Starting from ₹817/month (description)"
+    }
+  ],
+  "channels": [
+    "Instagram Reels",
+    "YouTube Shorts",
+    "Facebook Reels"
+  ],
+  "success_metric": "Click-throughs to product page",
+  "_source": "llm"
+}

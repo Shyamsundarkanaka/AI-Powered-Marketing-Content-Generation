@@ -34,15 +34,17 @@ from database.repository import (
 )
 from streamlit_app._shared import (
     STAGE_LABELS,
-    centered_title,
+    app_header,
     colored_button,
     dashboard_button,
     hide_sidebar,
     inject_action_button_css,
     inject_spinner_css,
+    inject_theme_css,
     render_warnings,
     running_badge,
     stage_progress,
+    status_badge,
     tighten_top_padding,
 )
 from worker.autostart import ensure_worker_running
@@ -50,6 +52,7 @@ from worker.autostart import ensure_worker_running
 st.set_page_config(page_title="Output", page_icon="\U0001F4C4", layout="wide")
 hide_sidebar()
 tighten_top_padding()
+inject_theme_css()
 inject_spinner_css()
 inject_action_button_css()
 st.markdown(
@@ -57,7 +60,7 @@ st.markdown(
     # Cap the whole page to a comfortable reading width — on wide monitors the
     # video and text were stretching edge-to-edge, which is what made the
     # page feel oversized rather than laid out for viewing.
-    ".block-container { max-width: 1100px; margin-left: auto; margin-right: auto; }"
+    ".block-container { max-width: 1000px; margin-left: auto; margin-right: auto; }"
     ".stVideo video {"
     "  max-width: 340px;"
     "  max-height: 420px;"
@@ -65,7 +68,10 @@ st.markdown(
     "  height: auto;"
     "  margin: 0 auto;"
     "  display: block;"
+    "  border-radius: 12px;"
+    "  box-shadow: 0 2px 10px rgba(43,38,32,0.12);"
     "}"
+    "div[data-testid='stAudio'] { margin-top: .5rem; }"
     "</style>",
     unsafe_allow_html=True,
 )
@@ -94,10 +100,10 @@ if product is None:
     st.info("Open a product from the Dashboard to review its output.")
     st.stop()
 
-centered_title(product.name)
+app_header(product.name, eyebrow="Review & Output")
 
 if product.status == "Running":
-    st.markdown(running_badge(f"**{product.url} · Status: {product.status}**"), unsafe_allow_html=True)
+    st.markdown(running_badge(f"**{product.url}**") + " " + status_badge(product.status), unsafe_allow_html=True)
     running_job = get_active_job_for_product(product.id)
     fraction, label = stage_progress(running_job.current_stage if running_job else None)
     st.progress(fraction, text=f"⏳ Regenerating… {label}")
@@ -105,7 +111,7 @@ if product.status == "Running":
     time.sleep(3)
     st.rerun()
 else:
-    st.caption(f"{product.url} · Status: {product.status}")
+    st.markdown(f"{product.url} &nbsp;·&nbsp; {status_badge(product.status)}", unsafe_allow_html=True)
 
     if product.status == "Failed":
         jobs = list_jobs_for_product(product.id)

@@ -1,0 +1,75 @@
+{
+  "campaign_brief": {
+    "objective": "Introduce the KingSong 16S Electric Unicycle to adventurous riders, highlighting its robust performance and durability for diverse Indian terrains.",
+    "target_persona": "weekend-explorer",
+    "key_message": "The KingSong 16S is engineered for powerful, dependable rides that conquer challenging terrains and extend your adventures.",
+    "proof_points": [
+      {
+        "claim": "Tackle steep inclines with a powerful motor.",
+        "source": "Rated Power: 1200W, Max Power: 3000W, Gradability: 30°"
+      },
+      {
+        "claim": "Experience extended rides with reliable range.",
+        "source": "Mileage: 60–80 km, 840Wh battery provides a range of up to 75 kilometers"
+      },
+      {
+        "claim": "Enjoy a smooth ride over varied and rough surfaces.",
+        "source": "16-inch wheel size provides a smooth ride over even the roughest terrain, Tyre Size: 16\""
+      }
+    ],
+    "channels": [
+      "Instagram",
+      "YouTube",
+      "Radboards.in website"
+    ],
+    "success_metric": "Increase in product page views and unique visitors to the KingSong 16S product page."
+  },
+  "script": {
+    "title": "KingSong 16S: Built for Every Adventure",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Ready for a ride that goes beyond the usual limits?",
+        "on_screen": "image_0"
+      },
+      {
+        "beat": "problem",
+        "line": "Facing unpredictable terrain? Or worried about your battery running out too soon?",
+        "on_screen": "image_1"
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the KingSong 16S Electric Unicycle. Built to take you everywhere, dependably.",
+        "on_screen": "image_2"
+      },
+      {
+        "beat": "proof",
+        "line": "Its powerful 1200W rated motor conquers inclines up to 30 degrees effortlessly. And go up to 80 kilometres on a single charge.",
+        "on_screen": "image_3"
+      },
+      {
+        "beat": "proof",
+        "line": "The 16-inch wheel smooths out even the roughest Indian roads. Plus, enjoy your journey with built-in Bluetooth speakers.",
+        "on_screen": "image_4"
+      },
+      {
+        "beat": "cta",
+        "line": "Experience the KingSong 16S. Find yours at Radboards.in today.",
+        "on_screen": "image_5"
+      }
+    ]
+  },
+  "caption": "Navigate every street and conquer every incline with the KingSong 16S. ✨ Built for real Indian roads, its 16-inch wheel ensures a smooth glide. The 1200W motor tackles 30-degree inclines. Ride up to 80 km on a single charge! 🔋 Bluetooth speakers included. Get yours made to order. Shop Radboards.in. Range varies with rider, terrain, temp.",
+  "hashtags": [
+    "#radboards",
+    "#kingsong16s",
+    "#electricunicycle",
+    "#eucindia",
+    "#builtforindia",
+    "#rideeverywhere",
+    "#urbanglide",
+    "#exploreindia",
+    "#offroadride",
+    "#personalelectricmobility"
+  ]
+}
