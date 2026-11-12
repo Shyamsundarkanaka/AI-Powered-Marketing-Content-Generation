@@ -17,7 +17,10 @@ brand_backups/
 
 # Reports, papers and presentations: kept locally, not part of the code base
 Paper Publication/
-docs/capstone2_report/
+docs/capstone2_report/*
+# ...except the final project report and the final presentation
+!docs/capstone2_report/*_Capstone2_Report_v15.docx
+!docs/capstone2_report/*_Capstone2_PPT_v3.pptx
 docs/capstone2_ppt/
 # Over GitHub's 100 MB file limit (docs/Demo.mp4 is the tracked demo)
 docs/Demo v2.mp4
@@ -34,3 +37,8 @@ CLAUDE.md
 ~$*
 Thumbs.db
 .DS_Store
+
+# Generated documentation page and working documents (kept locally)
+docs/PROJECT_DOCUMENTATION.html
+docs/build_doc_html.py
+docs/architecture/*.docx
