@@ -1,0 +1,30 @@
+{
+  "objective": "Drive engagement and click-throughs to the product page for the Rover Off-Roader.",
+  "target_persona": "weekend-explorer",
+  "persona_rationale": "The Rover Off-Roader's robust build, dual motors, and off-road capabilities directly address the weekend explorer's desire for adventure and performance on varied terrain.",
+  "key_message": "The Rover Off-Roader is built to tackle diverse Indian terrain, offering power and fun for weekend adventures.",
+  "proof_points": [
+    {
+      "claim": "Deep-treaded solid rubber tires glide over pavement, grass, or dirt.",
+      "source": "description: 'Whether it's the pavement, grass, or dirt, it delivers top-of-the-line performance always.'"
+    },
+    {
+      "claim": "Twin 350W hub motors climb slopes up to 10 degrees.",
+      "source": "specs: 'Motor: 2 × 350W Hub Motor' and 'Gradability: 10°'"
+    },
+    {
+      "claim": "Charge in 150 minutes for more time riding.",
+      "source": "specs: 'Charging Time: 150 mins'"
+    },
+    {
+      "claim": "Priced at ₹24,999, a saving from ₹32,000.",
+      "source": "price: '₹24,999' and compare_at_price: '₹32,000'"
+    }
+  ],
+  "channels": [
+    "Instagram",
+    "YouTube Shorts"
+  ],
+  "success_metric": "Click-through rate to product page",
+  "_source": "llm"
+}

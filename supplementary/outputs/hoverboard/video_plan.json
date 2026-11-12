@@ -1,0 +1,73 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 1,
+      "duration_seconds": 7.0,
+      "headline": "EXPLORE BEYOND PAVEMENT",
+      "subline": "Your next adventure starts here.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 5,
+      "duration_seconds": 7.0,
+      "headline": "NOT FOR PAVEMENT ONLY",
+      "subline": "Built to take on real Indian streets.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 0,
+      "duration_seconds": 7.0,
+      "headline": "MEET THE ROVER",
+      "subline": "Built for the ride to everywhere.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 7,
+      "duration_seconds": 8.0,
+      "headline": "POWER FOR ANY RIDE",
+      "subline": "Range, speed, charge vary by conditions.",
+      "spec_pills": [
+        {
+          "label": "Range",
+          "value": "8–10 km per charge"
+        },
+        {
+          "label": "Gradability",
+          "value": "10°"
+        },
+        {
+          "label": "Weight Capacity",
+          "value": "100 kg"
+        }
+      ]
+    },
+    {
+      "kind": "feature",
+      "beat": "proof",
+      "image_index": 3,
+      "duration_seconds": 6.0,
+      "headline": "GET YOUR ROVER TODAY",
+      "subline": "Yours for ₹24,999. Save from ₹32,000.",
+      "spec_pills": []
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 2,
+      "duration_seconds": 6.7,
+      "headline": "RADBOARDS.IN",
+      "subline": "Explore the Rover Off-Roader.",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 41.7,
+  "_source": "llm"
+}

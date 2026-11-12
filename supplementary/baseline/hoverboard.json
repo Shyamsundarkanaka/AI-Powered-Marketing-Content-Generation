@@ -1,0 +1,79 @@
+{
+  "campaign_brief": {
+    "objective": "Launch the Rover Off-Roader, targeting adventurous individuals who want a dependable electric board for varied terrain exploration and fun.",
+    "target_persona": "weekend-explorer",
+    "key_message": "The Radboards Rover Off-Roader is your dependable partner for conquering varied Indian terrains and expanding your weekend adventures.",
+    "proof_points": [
+      {
+        "claim": "Built with deep treaded solid rubber tires for superior grip on dirt and grass.",
+        "source": "product description"
+      },
+      {
+        "claim": "Features two 350W hub motors, making it easy to scale slopes up to 10 degrees.",
+        "source": "product description, specs"
+      },
+      {
+        "claim": "Designed to support a max load of 100 kg, ensuring robust performance.",
+        "source": "specs"
+      },
+      {
+        "claim": "Offers 8–10 km range per charge for extended fun.",
+        "source": "specs"
+      },
+      {
+        "claim": "Charges in just 150 minutes, minimising downtime.",
+        "source": "specs"
+      }
+    ],
+    "channels": [
+      "Instagram",
+      "YouTube",
+      "Radboards Website"
+    ],
+    "success_metric": "Increase in product page views for Rover Off-Roader by 20% in the first month post-launch."
+  },
+  "script": {
+    "title": "Radboards Rover: Built for Every Path",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Ever looked at that path less travelled and wished your ride could follow?",
+        "on_screen": "Rider stands at the edge of a paved road looking at an inviting dirt trail."
+      },
+      {
+        "beat": "problem",
+        "line": "Pavement ends. Gravel starts. Most boards stop. Not a Radboards Rover.",
+        "on_screen": "Quick cuts showing rough terrain: gravel, grass, small bumps. Then a shot of the Rover's rugged tires."
+      },
+      {
+        "beat": "product_reveal",
+        "line": "This is the Rover Off-Roader. Built for more. Made to take on anything.",
+        "on_screen": "Dynamic reveal of the Rover Off-Roader, showcasing its robust design and off-road tires. Focus on the Radboards logo."
+      },
+      {
+        "beat": "proof",
+        "line": "Its deep treaded tyres grip dirt and grass. Twin 350W hub motors tackle slopes up to 10 degrees. Glide for 8 to 10 km on a single charge. It recharges in just 150 minutes. It holds up to 100 kg.",
+        "on_screen": "Scene 1: Close-up of Rover tires gripping gravel. Scene 2: Rover smoothly ascends a 10-degree incline. Scene 3: Rider enjoying a scenic ride on a dirt path. Scene 4: Graphic indicating '150 mins charging time'. Scene 5: Rider, confidently on the board."
+      },
+      {
+        "beat": "cta",
+        "line": "Find your next adventure. See the Rover at Radboards.in today.",
+        "on_screen": "Rider rides off into a picturesque, unpaved landscape. Then a clear call to action: 'Radboards.in' displayed prominently."
+      }
+    ]
+  },
+  "caption": "Beyond the pavement. The Radboards Rover Off-Roader conquers any path. ⛰️ Potholes, grass, dirt? No problem. With deep-treaded tires and twin 350W motors, it scales 10° slopes. Enjoy 8-10 km range, recharging in just 150 mins. Built tough for real adventures. Yours for ₹24,999.\nGet ready to explore: radboards.in\n*Range, speed, charge vary by conditions.",
+  "hashtags": [
+    "#radboards",
+    "#roveroffroader",
+    "#offroadride",
+    "#indiaride",
+    "#electricmobility",
+    "#adventuretime",
+    "#exploreindia",
+    "#urbanexplorer",
+    "#personalelectric",
+    "#radlife",
+    "#builtforindia"
+  ]
+}

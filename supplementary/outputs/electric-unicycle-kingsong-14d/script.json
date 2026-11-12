@@ -1,0 +1,33 @@
+{
+  "title": "KingSong 14D: Your Commute, Reimagined",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Tired of the daily traffic struggle in your city?",
+      "on_screen": "Beat the traffic."
+    },
+    {
+      "beat": "problem",
+      "line": "Unpredictable commutes steal your time and energy every single day.",
+      "on_screen": "Wasted time?"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Glide past it all on the dependable Radboards KingSong 14D.",
+      "on_screen": "KingSong 14D"
+    },
+    {
+      "beat": "proof",
+      "line": "Reach 30 km/h with a 35 km range and carry its 14.5 kg easily.",
+      "on_screen": "Speed. Range. Portable."
+    },
+    {
+      "beat": "cta",
+      "line": "Get the KingSong 14D for ₹75,000 at Radboards.in. Range and speed vary.",
+      "on_screen": "Radboards.in | Range varies."
+    }
+  ],
+  "estimated_duration_seconds": 22.9,
+  "word_count": 55,
+  "_source": "llm"
+}

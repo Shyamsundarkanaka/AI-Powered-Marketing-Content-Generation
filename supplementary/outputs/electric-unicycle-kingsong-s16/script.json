@@ -1,0 +1,33 @@
+{
+  "title": "KingSong S16 Pro: Conquer Any Terrain",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Tired of rides that can't handle real trails?",
+      "on_screen": "Conquer Any Terrain"
+    },
+    {
+      "beat": "problem",
+      "line": "Weak motors and fragile tires limit your adventure. You need more capability.",
+      "on_screen": "Beyond Paved Roads"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Unleash the KingSong S16 Pro.",
+      "on_screen": "KingSong S16 Pro"
+    },
+    {
+      "beat": "proof",
+      "line": "Command 3000W power. Climb 48-degree grades. Its rugged 16-inch all-terrain tire grips any surface. Experience stable rides with 88 mm of X-Type suspension. A 1480 Wh battery gives up to 130 km range. Built for the ride to everywhere.",
+      "on_screen": "Unmatched Performance"
+    },
+    {
+      "beat": "cta",
+      "line": "Ready to push your limits? Find your KingSong S16 Pro at Radboards.in.",
+      "on_screen": "Radboards.in"
+    }
+  ],
+  "estimated_duration_seconds": 31.7,
+  "word_count": 76,
+  "_source": "llm"
+}

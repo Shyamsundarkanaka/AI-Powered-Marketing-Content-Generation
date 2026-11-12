@@ -1,0 +1,198 @@
+{
+  "product_id": 10,
+  "job_id": 12,
+  "version_id": 7,
+  "version_number": 1,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "sources": {
+    "campaign_brief": "llm",
+    "script": "llm",
+    "caption": "llm",
+    "hashtags": "llm",
+    "video_plan": "llm",
+    "voiceover": "elevenlabs",
+    "video": "render"
+  },
+  "warnings": [
+    "script: needed 2 attempts (\"beats\" must contain exactly 5 entries whose \"beat\" values are, in this order: hook, problem, product_reveal, proof, cta. You gave: hook, problem, problem, product_reveal, product_reveal, proof, proof, proof, proof, proof, proof, cta, cta.)",
+    "video_plan: needed 2 attempts (no JSON object found in the response (it began: '```json {   \"scenes\": [     {       \"kind\": \"title\",       \"beat\": \"hook\",       \"image_index\": 0,       \"duration_seconds\": 6.0,       \"headline\": \"BEAT THE TRAFFIC\",       \"subline\": \"Your commute j'); reply with a single JSON object and nothing else)"
+  ],
+  "revision_of_feedback": null,
+  "content": {
+    "campaign_brief": {
+      "objective": "Generate awareness and drive traffic to the product page for the Shockwave V1 Pro kick scooter.",
+      "target_persona": "urban-commuter",
+      "persona_rationale": "The Shockwave V1 Pro's portability, durable build, and reliable range directly address the urban commuter's need for a predictable, hassle-free last-mile solution.",
+      "key_message": "The Shockwave V1 Pro is built for dependable daily commutes, offering a smooth ride and easy portability for navigating city life.",
+      "proof_points": [
+        {
+          "claim": "Folds quickly and is lightweight for easy storage or carrying up to your flat.",
+          "source": "description: 'Lightweight & Foldable with 120 kg Load Capacity – Made from high-strength 6061 aluminum alloy, this electric kick scooter is both lightweight and durable. Its foldable design allows for quick and easy storage or transport—perfect for daily commutes, school runs, work, or weekend getaways.'"
+        },
+        {
+          "claim": "Dual suspension ensures a smooth and stable ride, even on bumpy roads.",
+          "source": "description: 'Dual Suspension for Enhanced Comfort – Built to handle rough terrain, this electric kick scooter comes with both front suspension and rear damping suspension, ensuring a smooth and stable ride even on bumpy roads.'"
+        },
+        {
+          "claim": "Offers up to 30 km on a single charge, minimizing frequent recharging.",
+          "source": "description: 'Long-Range Battery for Daily Commute – With a high-capacity 8Ah lithium-ion battery, this electrick kick scooter offers up to 30 km on a single charge, minimizing the need for frequent recharging.'"
+        },
+        {
+          "claim": "Puncture-proof 8.5-inch solid tires provide better grip and smooth handling on city streets.",
+          "source": "description: 'Durable 8.5-Inch Puncture-Proof Tires – Enjoy a stable and comfortable ride with shock-absorbing, honeycomb 8.5-inch solid tires. Designed for better grip and smooth handling across city roads and varied terrain.'"
+        }
+      ],
+      "channels": [
+        "instagram_reels",
+        "youtube_shorts"
+      ],
+      "success_metric": "Clicks to product page and video completion rate.",
+      "_source": "llm"
+    },
+    "script": {
+      "title": "Radboards Shockwave V1 Pro: Your Commute Solved",
+      "beats": [
+        {
+          "beat": "hook",
+          "line": "Tired of traffic and long walks to work?",
+          "on_screen": "Beat the traffic."
+        },
+        {
+          "beat": "problem",
+          "line": "Your commute needs to be fast and reliable. Forget bumpy roads or low battery stress.",
+          "on_screen": "Predictable commute."
+        },
+        {
+          "beat": "product_reveal",
+          "line": "Meet the Radboards Shockwave V1 Pro. Built for the ride to everywhere.",
+          "on_screen": "Shockwave V1 Pro."
+        },
+        {
+          "beat": "proof",
+          "line": "It folds fast, made from aluminum. Carry it easily. Glide up to 30 km on a charge. Dual suspension handles bumpy streets. Puncture-proof tires give grip. Range varies with rider and terrain.",
+          "on_screen": "Built to last. Up to 30 km."
+        },
+        {
+          "beat": "cta",
+          "line": "Get your dependable ride for ₹45,000 today. Visit Radboards.in.",
+          "on_screen": "Radboards.in ₹45,000."
+        }
+      ],
+      "estimated_duration_seconds": 31.7,
+      "word_count": 76,
+      "_source": "llm"
+    },
+    "caption": {
+      "caption": "Ditch the traffic. Carry your ride up stairs with ease. 🚀\nShockwave V1 Pro: built for city commutes. Folds, lightweight aluminium for easy transport. Dual suspension handles bumps. Up to 30 km range (varies with use). No more worry about bad roads or low battery. ✅ Yours for ₹45,000 at Radboards.in.",
+      "first_line": "Ditch the traffic. Carry your ride up stairs with ease. 🚀",
+      "cta": "Yours for ₹45,000 at Radboards.in.",
+      "char_count": 300,
+      "_source": "llm"
+    },
+    "hashtags": {
+      "hashtags": [
+        "#radboards",
+        "#shockwavev1pro",
+        "#electricscooter",
+        "#kickscooter",
+        "#urbanmobility",
+        "#dailycommute",
+        "#lastmile",
+        "#cityride",
+        "#emobilityindia",
+        "#portablemobility"
+      ],
+      "rationale": "The hashtags combine brand and product specifics with category and urban commuter-focused terms relevant to the Indian market, chosen for reach without looking desperate.",
+      "_source": "llm"
+    },
+    "video_plan": {
+      "scenes": [
+        {
+          "kind": "title",
+          "beat": "hook",
+          "image_index": 0,
+          "duration_seconds": 6.0,
+          "headline": "BEAT THE TRAFFIC",
+          "subline": "Your commute just got easier.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "problem",
+          "image_index": 3,
+          "duration_seconds": 6.0,
+          "headline": "PREDICTABLE COMMUTE",
+          "subline": "No more delays. Arrive on time, every time.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "product_reveal",
+          "image_index": 1,
+          "duration_seconds": 6.0,
+          "headline": "SHOCKWAVE V1 PRO",
+          "subline": "Built for the ride to everywhere.",
+          "spec_pills": []
+        },
+        {
+          "kind": "spec",
+          "beat": "proof",
+          "image_index": 4,
+          "duration_seconds": 7.7,
+          "headline": "BUILT TO LAST",
+          "subline": "Dependable tech for real Indian streets.",
+          "spec_pills": [
+            {
+              "label": "Load Capacity",
+              "value": "120 kg"
+            },
+            {
+              "label": "Range",
+              "value": "Up to 30 km"
+            },
+            {
+              "label": "Tires",
+              "value": "8.5-inch Puncture-Proof"
+            }
+          ]
+        },
+        {
+          "kind": "cta",
+          "beat": "cta",
+          "image_index": 2,
+          "duration_seconds": 6.0,
+          "headline": "RADBOARDS.IN",
+          "subline": "Get yours today for ₹45,000.",
+          "spec_pills": []
+        }
+      ],
+      "total_duration_seconds": 31.7,
+      "_source": "llm"
+    },
+    "voiceover": {
+      "file_path": "output\\e-scooter\\v1\\voiceover.wav",
+      "duration_seconds": 27.36,
+      "engine": "elevenlabs",
+      "is_silent": false,
+      "spoken_text": "Tired of traffic and long walks to work? Your commute needs to be fast and reliable. Forget bumpy roads or low battery stress. Meet the Radboards Shockwave V1 Pro. Built for the ride to everywhere. It folds fast, made from aluminum. Carry it easily. Glide up to 30 km on a charge. Dual suspension handles bumpy streets. Puncture-proof tires give grip. Range varies with rider and terrain. Get your dependable ride for ₹45,000 today. Visit Radboards.in.",
+      "warnings": [],
+      "beat_durations": [
+        2.378,
+        5.017,
+        4.337,
+        11.521,
+        4.102
+      ]
+    },
+    "video": {
+      "file_path": "output\\e-scooter\\v1\\video.mp4",
+      "duration_seconds": 25.56,
+      "resolution": "1080x1920",
+      "fps": 30,
+      "scene_count": 5,
+      "has_audio": true,
+      "warnings": []
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "objective": "Drive interest and website visits for the KingSong S16 Pro electric unicycle, highlighting its off-road capabilities and powerful performance.",
+  "target_persona": "weekend-explorer",
+  "persona_rationale": "The KingSong S16 Pro's high price, robust off-road features, powerful motor, and specialized nature align perfectly with the weekend explorer's desire for performance and build quality.",
+  "key_message": "The KingSong S16 Pro is built for powerful rides and conquering varied terrain, offering serious capability for weekend adventures.",
+  "proof_points": [
+    {
+      "claim": "Harness 3000W rated power and a 48° gradability for steep climbs and demanding trails.",
+      "source": "specs: Rated Power: 3000W, Gradability: 48°"
+    },
+    {
+      "claim": "Take on any surface with ease thanks to its rugged 16-inch all-terrain tire.",
+      "source": "description: 'Take on any surface with ease thanks to KingSong S16’s rugged 16-inch all-terrain tire'"
+    },
+    {
+      "claim": "Experience unparalleled stability with 88 mm of dustproof X-Type suspension travel.",
+      "source": "description: 'Experience unparalleled stability and sleek design with KingSong S16’s dustproof X-Type suspension'; specs: 'Suspension Travel: 88 mm'"
+    },
+    {
+      "claim": "Extend your adventures with up to 130 km range on a free wheel from its 1480 Wh battery.",
+      "source": "description: 'Extend your adventures with KingSong S16’s 1480 Wh battery, providing a 130 km range on a free wheel.'"
+    }
+  ],
+  "channels": [
+    "Instagram Reels",
+    "YouTube Shorts"
+  ],
+  "success_metric": "Website clicks to product page and engagement rate (likes, shares, comments).",
+  "_source": "llm"
+}

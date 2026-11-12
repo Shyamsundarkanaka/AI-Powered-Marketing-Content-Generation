@@ -14,3 +14,23 @@ brand_backups/
 
 .pytest_cache/
 .streamlit/secrets.toml
+
+# Reports, papers and presentations: kept locally, not part of the code base
+Paper Publication/
+docs/capstone2_report/
+docs/capstone2_ppt/
+# Over GitHub's 100 MB file limit (docs/Demo.mp4 is the tracked demo)
+docs/Demo v2.mp4
+# Working copy of the evaluation scripts; the published copy is supplementary/scripts/
+eval/
+
+# Assistant / editor files
+.claude/
+CLAUDE.md
+.vscode/
+.idea/
+
+# Office lock files and OS clutter
+~$*
+Thumbs.db
+.DS_Store

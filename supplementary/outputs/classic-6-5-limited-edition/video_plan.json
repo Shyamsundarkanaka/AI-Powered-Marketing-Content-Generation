@@ -1,0 +1,64 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 7,
+      "duration_seconds": 4.0,
+      "headline": "CAMPUS LIFE, SIMPLIFIED.",
+      "subline": "No more long walks between classes.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 0,
+      "duration_seconds": 4.0,
+      "headline": "NO MORE WALKING!",
+      "subline": "Glide past those long campus commutes.",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 8,
+      "duration_seconds": 5.0,
+      "headline": "RADBOARDS CLASSIC 6.5",
+      "subline": "Your new ride to everywhere.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 1,
+      "duration_seconds": 18.2,
+      "headline": "FAST. FUN. STABLE. AFFORDABLE.",
+      "subline": "Starting at ₹16,999. EMI from ₹817/month.",
+      "spec_pills": [
+        {
+          "label": "TOP SPEED",
+          "value": "15 km/h"
+        },
+        {
+          "label": "RANGE",
+          "value": "8–10 km per charge"
+        },
+        {
+          "label": "CHARGE TIME",
+          "value": "120 mins"
+        }
+      ]
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 9,
+      "duration_seconds": 3.0,
+      "headline": "RADBOARDS.IN",
+      "subline": "Visit today to start your new ride.",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 34.2,
+  "_source": "llm"
+}

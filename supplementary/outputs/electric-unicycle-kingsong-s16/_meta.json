@@ -1,0 +1,197 @@
+{
+  "product_id": 12,
+  "job_id": 13,
+  "version_id": 8,
+  "version_number": 1,
+  "provider": "gemini",
+  "model": "gemini-2.5-flash",
+  "sources": {
+    "campaign_brief": "llm",
+    "script": "llm",
+    "caption": "llm",
+    "hashtags": "llm",
+    "video_plan": "llm",
+    "voiceover": "elevenlabs",
+    "video": "render"
+  },
+  "warnings": [
+    "script: needed 3 attempts (\"beats\" must contain exactly 5 entries whose \"beat\" values are, in this order: hook, problem, product_reveal, proof, cta. You gave: hook, problem, product_reveal, proof, proof, proof, proof, proof, cta.)"
+  ],
+  "revision_of_feedback": null,
+  "content": {
+    "campaign_brief": {
+      "objective": "Drive interest and website visits for the KingSong S16 Pro electric unicycle, highlighting its off-road capabilities and powerful performance.",
+      "target_persona": "weekend-explorer",
+      "persona_rationale": "The KingSong S16 Pro's high price, robust off-road features, powerful motor, and specialized nature align perfectly with the weekend explorer's desire for performance and build quality.",
+      "key_message": "The KingSong S16 Pro is built for powerful rides and conquering varied terrain, offering serious capability for weekend adventures.",
+      "proof_points": [
+        {
+          "claim": "Harness 3000W rated power and a 48° gradability for steep climbs and demanding trails.",
+          "source": "specs: Rated Power: 3000W, Gradability: 48°"
+        },
+        {
+          "claim": "Take on any surface with ease thanks to its rugged 16-inch all-terrain tire.",
+          "source": "description: 'Take on any surface with ease thanks to KingSong S16’s rugged 16-inch all-terrain tire'"
+        },
+        {
+          "claim": "Experience unparalleled stability with 88 mm of dustproof X-Type suspension travel.",
+          "source": "description: 'Experience unparalleled stability and sleek design with KingSong S16’s dustproof X-Type suspension'; specs: 'Suspension Travel: 88 mm'"
+        },
+        {
+          "claim": "Extend your adventures with up to 130 km range on a free wheel from its 1480 Wh battery.",
+          "source": "description: 'Extend your adventures with KingSong S16’s 1480 Wh battery, providing a 130 km range on a free wheel.'"
+        }
+      ],
+      "channels": [
+        "Instagram Reels",
+        "YouTube Shorts"
+      ],
+      "success_metric": "Website clicks to product page and engagement rate (likes, shares, comments).",
+      "_source": "llm"
+    },
+    "script": {
+      "title": "KingSong S16 Pro: Conquer Any Terrain",
+      "beats": [
+        {
+          "beat": "hook",
+          "line": "Tired of rides that can't handle real trails?",
+          "on_screen": "Conquer Any Terrain"
+        },
+        {
+          "beat": "problem",
+          "line": "Weak motors and fragile tires limit your adventure. You need more capability.",
+          "on_screen": "Beyond Paved Roads"
+        },
+        {
+          "beat": "product_reveal",
+          "line": "Unleash the KingSong S16 Pro.",
+          "on_screen": "KingSong S16 Pro"
+        },
+        {
+          "beat": "proof",
+          "line": "Command 3000W power. Climb 48-degree grades. Its rugged 16-inch all-terrain tire grips any surface. Experience stable rides with 88 mm of X-Type suspension. A 1480 Wh battery gives up to 130 km range. Built for the ride to everywhere.",
+          "on_screen": "Unmatched Performance"
+        },
+        {
+          "beat": "cta",
+          "line": "Ready to push your limits? Find your KingSong S16 Pro at Radboards.in.",
+          "on_screen": "Radboards.in"
+        }
+      ],
+      "estimated_duration_seconds": 31.7,
+      "word_count": 76,
+      "_source": "llm"
+    },
+    "caption": {
+      "caption": "Your weekend adventures just found their match. Go anywhere.\nKingSong S16 Pro: 3000W power, 48° gradability. ⛰️ Its 16-inch all-terrain tire and 88 mm X-Type suspension handle anything. Up to 130 km range. (Range figures vary.) Built for the ride to everywhere. Find yours at Radboards.in.",
+      "first_line": "Your weekend adventures just found their match. Go anywhere.",
+      "cta": "Find yours at Radboards.in.",
+      "char_count": 289,
+      "_source": "llm"
+    },
+    "hashtags": {
+      "hashtags": [
+        "#radboards",
+        "#kingsongs16",
+        "#electricunicycle",
+        "#eucindia",
+        "#offroadride",
+        "#adventureonewheel",
+        "#indiarides",
+        "#powerfuleuc",
+        "#terraintamer",
+        "#builtfortheride"
+      ],
+      "rationale": "The hashtags include the brand name, product name, category terms relevant to India, and audience-focused tags highlighting off-road adventure and power, balancing reach without sounding desperate.",
+      "_source": "llm"
+    },
+    "video_plan": {
+      "scenes": [
+        {
+          "kind": "title",
+          "beat": "hook",
+          "image_index": 3,
+          "duration_seconds": 6.0,
+          "headline": "CONQUER ANY TERRAIN",
+          "subline": "Built for the ride to everywhere.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "problem",
+          "image_index": 8,
+          "duration_seconds": 6.0,
+          "headline": "BEYOND PAVED ROADS",
+          "subline": "No limits on your adventure.",
+          "spec_pills": []
+        },
+        {
+          "kind": "feature",
+          "beat": "product_reveal",
+          "image_index": 0,
+          "duration_seconds": 5.0,
+          "headline": "KINGSONG S16 PRO",
+          "subline": "Your next adventure starts here.",
+          "spec_pills": []
+        },
+        {
+          "kind": "spec",
+          "beat": "proof",
+          "image_index": 1,
+          "duration_seconds": 10.0,
+          "headline": "UNMATCHED PERFORMANCE",
+          "subline": "Power and stability for every ride.",
+          "spec_pills": [
+            {
+              "label": "Rated Power",
+              "value": "3000W"
+            },
+            {
+              "label": "Gradability",
+              "value": "48°"
+            },
+            {
+              "label": "Suspension Travel",
+              "value": "88 mm"
+            }
+          ]
+        },
+        {
+          "kind": "cta",
+          "beat": "cta",
+          "image_index": 10,
+          "duration_seconds": 4.7,
+          "headline": "RADBOARDS.IN",
+          "subline": "Explore the KingSong S16 Pro today.",
+          "spec_pills": []
+        }
+      ],
+      "total_duration_seconds": 31.7,
+      "_source": "llm"
+    },
+    "voiceover": {
+      "file_path": "output\\electric-unicycle-kingsong-s16\\v1\\voiceover.wav",
+      "duration_seconds": 33.89,
+      "engine": "elevenlabs",
+      "is_silent": false,
+      "spoken_text": "Tired of rides that can't handle real trails? Weak motors and fragile tires limit your adventure. You need more capability. Unleash the KingSong S16 Pro. Command 3000W power. Climb 48-degree grades. Its rugged 16-inch all-terrain tire grips any surface. Experience stable rides with 88 mm of X-Type suspension. A 1480 Wh battery gives up to 130 km range. Built for the ride to everywhere. Ready to push your limits? Find your KingSong S16 Pro at Radboards.in.",
+      "warnings": [],
+      "beat_durations": [
+        2.796,
+        4.755,
+        2.3,
+        18.679,
+        5.356
+      ]
+    },
+    "video": {
+      "file_path": "output\\electric-unicycle-kingsong-s16\\v1\\video.mp4",
+      "duration_seconds": 32.09,
+      "resolution": "1080x1920",
+      "fps": 30,
+      "scene_count": 5,
+      "has_audio": true,
+      "warnings": []
+    }
+  }
+}

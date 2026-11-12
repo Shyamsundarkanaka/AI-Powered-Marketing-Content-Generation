@@ -1,0 +1,84 @@
+{
+  "campaign_brief": {
+    "objective": "To launch the KingSong S16 Pro as the ultimate electric unicycle for serious off-road enthusiasts and weekend explorers, highlighting its robust power and suspension.",
+    "target_persona": "weekend-explorer",
+    "key_message": "The Radboards KingSong S16 Pro offers dependable power and rugged build quality for navigating challenging terrains and extending weekend adventures.",
+    "proof_points": [
+      {
+        "claim": "Experience superior stability and smooth riding with dustproof X-Type suspension and 88 mm of travel.",
+        "source": "KingSong S16’s dustproof X-Type suspension, Suspension Travel: 88 mm"
+      },
+      {
+        "claim": "Conquer diverse surfaces with ease thanks to a powerful 3000W rated motor (5000W max) and a 48° gradability.",
+        "source": "Rated Power: 3000W, Max Power: 5000W, Gradability: 48°"
+      },
+      {
+        "claim": "Extended adventures are possible with an up to 80 km range from its 1480 Wh battery, all riding on a durable 16-inch all-terrain tyre.",
+        "source": "1480 Wh battery, providing a 130 km range on a free wheel (interpreted as 60-80 km Mileage in specs), Tyre Size: 16\""
+      },
+      {
+        "claim": "Built tough to support riders up to 120 kg, ensuring stability and durability.",
+        "source": "Max Load: 120 kg"
+      }
+    ],
+    "channels": [
+      "Instagram",
+      "YouTube",
+      "Radboards Website"
+    ],
+    "success_metric": "Increase in pre-orders for KingSong S16 Pro and engagement rates on launch content."
+  },
+  "script": {
+    "title": "KingSong S16 Pro: Built for Adventure",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "That unexplored trail? It's calling your name.",
+        "on_screen": "A wide, scenic trail winding through varied terrain."
+      },
+      {
+        "beat": "problem",
+        "line": "Most boards stop where the paved road ends.",
+        "on_screen": "A generic board struggling or stuck on rough terrain."
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the Electric Unicycle KingSong S16 Pro. Built for adventure.",
+        "on_screen": "Hero shot of the KingSong S16 Pro in a natural, rugged environment."
+      },
+      {
+        "beat": "proof",
+        "line": "Power through anything. A 3000W rated motor climbs 48° inclines. Experience 88 mm suspension travel.",
+        "on_screen": "S16 Pro ascending a steep, rocky path; close-up of suspension absorbing impact. Text: 'Rated Power: 3000W, Gradability: 48°, Suspension Travel: 88mm'"
+      },
+      {
+        "beat": "proof",
+        "line": "Its 16-inch all-terrain tyre grips everywhere. Ride up to 80 km, supporting 120 kg.",
+        "on_screen": "S16 Pro gliding smoothly over gravel, then mud. Close-up of the 16-inch tire. Text: 'Up to 80 km range. Max Load: 120 kg. Disclosure: Range varies with rider weight, terrain, temperature.'"
+      },
+      {
+        "beat": "proof",
+        "line": "Bluetooth speakers bring your music along.",
+        "on_screen": "Rider confidently riding the S16 Pro, subtle animation implying music playing from the board."
+      },
+      {
+        "beat": "cta",
+        "line": "Pre-order your S16 Pro today at Radboards.in.",
+        "on_screen": "Radboards logo and website: radboards.in. Price: ₹185,000"
+      }
+    ]
+  },
+  "caption": "That trail? The KingSong S16 Pro eats it for breakfast. ⛰️ A 3000W motor and 88 mm suspension glide over anything. 16-inch all-terrain tyre, 80 km range*. Bluetooth speakers. Made to order (45-60 days delivery). Pre-order for ₹185,000 at Radboards.in! (*Range varies with weight, terrain, temperature.)",
+  "hashtags": [
+    "#radboards",
+    "#kingsongs16pro",
+    "#electricunicycle",
+    "#eucindia",
+    "#offroadride",
+    "#adventurewheels",
+    "#personalelectricmobility",
+    "#indiarides",
+    "#exploreindia",
+    "#thrillseeker"
+  ]
+}

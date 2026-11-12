@@ -1,0 +1,95 @@
+{
+  "scenes": [
+    {
+      "kind": "title",
+      "beat": "hook",
+      "image_index": 0,
+      "duration_seconds": 4.0,
+      "headline": "YOUR RIDE, UNLIMITED FREEDOM",
+      "subline": "Ready for open roads and untamed trails?",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "problem",
+      "image_index": 4,
+      "duration_seconds": 4.0,
+      "headline": "CONQUER EVERY TERRAIN",
+      "subline": "Does your ride struggle with hills or lack the range for adventure?",
+      "spec_pills": []
+    },
+    {
+      "kind": "feature",
+      "beat": "product_reveal",
+      "image_index": 1,
+      "duration_seconds": 4.0,
+      "headline": "KINGSONG 16S EUC",
+      "subline": "Built for the ride to everywhere, genuinely fun.",
+      "spec_pills": []
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 2,
+      "duration_seconds": 4.5,
+      "headline": "POWER TO GLIDE",
+      "subline": "Smooth ride, powerful motor for any challenge.",
+      "spec_pills": [
+        {
+          "label": "Max Power",
+          "value": "3000W"
+        },
+        {
+          "label": "Gradability",
+          "value": "30°"
+        },
+        {
+          "label": "Tyre Size",
+          "value": "16\""
+        }
+      ]
+    },
+    {
+      "kind": "spec",
+      "beat": "proof",
+      "image_index": 3,
+      "duration_seconds": 4.5,
+      "headline": "GO FURTHER",
+      "subline": "Long range for your daily commute or weekend exploration.",
+      "spec_pills": [
+        {
+          "label": "Mileage",
+          "value": "60–80 km"
+        },
+        {
+          "label": "Max Load",
+          "value": "120 kg"
+        },
+        {
+          "label": "Weight of the Product",
+          "value": "17.3 kg"
+        }
+      ]
+    },
+    {
+      "kind": "feature",
+      "beat": "proof",
+      "image_index": 6,
+      "duration_seconds": 4.5,
+      "headline": "SMART FEATURES",
+      "subline": "Built-in Bluetooth speakers and a telescopic carry handle.",
+      "spec_pills": []
+    },
+    {
+      "kind": "cta",
+      "beat": "cta",
+      "image_index": 8,
+      "duration_seconds": 4.9,
+      "headline": "YOUR NEXT ADVENTURE",
+      "subline": "Visit Radboards.in for the KingSong 16S.",
+      "spec_pills": []
+    }
+  ],
+  "total_duration_seconds": 30.4,
+  "_source": "llm"
+}

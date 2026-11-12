@@ -1,0 +1,75 @@
+{
+  "campaign_brief": {
+    "objective": "To introduce the Electric Unicycle KingSong 14D as a versatile, dependable, and fun personal electric mobility solution for urban commuters and trail explorers in India.",
+    "target_persona": "urban-commuter",
+    "key_message": "The Radboards KingSong 14D is built for navigating city streets and exploring trails, offering a reliable, fun ride that fits into your life.",
+    "proof_points": [
+      {
+        "claim": "Experience versatile handling with a 14-inch tyre for excellent maneuverability.",
+        "source": "The Kingsong 14D has a 14-inch tire that provides excellent maneuverability and portability."
+      },
+      {
+        "claim": "Cover up to 40 km on a single charge, perfect for daily commutes or longer rides.",
+        "source": "Mileage: 40 km"
+      },
+      {
+        "claim": "Reach destinations faster with speeds up to 30 km/h, powered by an 800W motor.",
+        "source": "Max Speed: 30 km/h",
+        "Rated Power": "800W"
+      },
+      {
+        "claim": "At 14.5 kg, the KingSong 14D is easy to carry up to your flat or office.",
+        "source": "Weight of the Product: 14.5 kg"
+      }
+    ],
+    "channels": [
+      "Instagram",
+      "YouTube",
+      "Radboards website"
+    ],
+    "success_metric": "Increase in product page views for the KingSong 14D on radboards.in by 20% in the first month."
+  },
+  "script": {
+    "title": "Radboards KingSong 14D - Your Ride to Everywhere",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Tired of the daily commute grind?",
+        "on_screen": "Image 1: Rider looking frustrated in traffic"
+      },
+      {
+        "beat": "problem",
+        "line": "Traffic. Long waits. City moves are tough. You need a faster way.",
+        "on_screen": "Image 2: Overhead shot of slow traffic, map highlighting a short distance"
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the Radboards KingSong 14D. Your ride to everywhere.",
+        "on_screen": "Image 3: Dynamic shot of EUC 14D in motion"
+      },
+      {
+        "beat": "proof",
+        "line": "Its 14-inch tyre tackles streets and trails. Go up to 40 km on one charge. Hit 30 km/h with the 800W motor. Range and speed vary. At 14.5 kg, it carries easily. Always wear a helmet.",
+        "on_screen": "Image 4: Split screen showing city riding, trail riding. Close up on tyre, battery indicator, speed display. Rider carrying board and wearing a helmet."
+      },
+      {
+        "beat": "cta",
+        "line": "Ready for a dependable, fun glide? Discover the KingSong 14D at Radboards.in.",
+        "on_screen": "Image 5: EUC 14D parked, with Radboards website URL visible"
+      }
+    ]
+  },
+  "caption": "Navigate your commute or trails with the KingSong 14D. Your next ride. 🛣️\nBuilt for real Indian streets, this electric unicycle packs an 800W motor and a 14-inch tyre for easy handling. Glide up to 40 km on a single charge. Reach speeds of 30 km/h. At 14.5 kg, it's easy to carry or store.\nReady for a dependable, fun way to move? Get yours today!\n₹75,000. Range & speed vary.\nShop now at radboards.in",
+  "hashtags": [
+    "#radboards",
+    "#kingsong14d",
+    "#electricunicycle",
+    "#euc",
+    "#personalmobility",
+    "#indiarides",
+    "#urbancommute",
+    "#trailexplorer",
+    "#ridetoeverywhere",
+    "#indianstreets"
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "objective": "Drive awareness and consideration for the KingSong S22 Pro electric unicycle among adventure riders.",
+  "target_persona": "weekend-explorer",
+  "persona_rationale": "The high price point and advanced off-road features of the KingSong S22 Pro align perfectly with the weekend explorer's desire for real torque and off-road capability.",
+  "key_message": "Experience powerful off-road rides with the KingSong S22 Pro, built for adventure.",
+  "proof_points": [
+    {
+      "claim": "The S22 Pro features a spring suspension system with 130mm of travel, designed for smooth rides over rough ground.",
+      "source": "description: 'The KingSong S22 Pro has a spring suspension system with 130mm of travel. This suspension system is designed to provide a smooth and comfortable ride over rough terrain.'"
+    },
+    {
+      "claim": "It delivers serious power with an 8500W max power motor, enabling a 40° gradability.",
+      "source": "specs: 'Max Power: 8500W', 'Gradability: 40°'"
+    },
+    {
+      "claim": "Ride further with a mileage of up to 200 km on a single charge.",
+      "source": "specs: 'Mileage: 180–200 km'"
+    },
+    {
+      "claim": "The unicycle has an eight-LED adjustable headlight and two bright tail lights for visibility.",
+      "source": "description: 'The KingSong S22 Pro has an eight-LED headlight that can be adjusted up to 15 degrees. This headlight provides excellent visibility for night riding. The headlight also has a brake light and turn signals. The EUC has two tail lights that are located on the back of the unicycle. The tail lights are bright and visible, and they can be used to indicate your braking and turning intentions to other road users.'"
+    }
+  ],
+  "channels": [
+    "instagram_reels",
+    "youtube_shorts"
+  ],
+  "success_metric": "Video views and click-through rate to product page.",
+  "_source": "llm"
+}

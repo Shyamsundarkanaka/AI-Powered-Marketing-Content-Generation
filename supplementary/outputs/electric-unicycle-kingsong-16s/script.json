@@ -1,0 +1,33 @@
+{
+  "title": "KingSong 16S EUC: Power for Every Adventure",
+  "beats": [
+    {
+      "beat": "hook",
+      "line": "Ready for open roads and untamed trails?",
+      "on_screen": "Explore freely"
+    },
+    {
+      "beat": "problem",
+      "line": "Does your ride struggle with hills or lack the range for adventure?",
+      "on_screen": "Conquer limits"
+    },
+    {
+      "beat": "product_reveal",
+      "line": "Discover the KingSong 16S Electric Unicycle. Built for the ride to everywhere.",
+      "on_screen": "KingSong 16S EUC"
+    },
+    {
+      "beat": "proof",
+      "line": "Its 16-inch wheel glides over rough terrain. A 3000W max motor tackles 30° hills. Ride up to 75 kilometers on one charge. Enjoy music via built-in Bluetooth speakers. A telescopic handle makes carrying simple.",
+      "on_screen": "Power, Range, Sound"
+    },
+    {
+      "beat": "cta",
+      "line": "Visit Radboards.in to start your next great adventure.",
+      "on_screen": "Radboards.in"
+    }
+  ],
+  "estimated_duration_seconds": 30.4,
+  "word_count": 73,
+  "_source": "llm"
+}

@@ -1,0 +1,76 @@
+{
+  "campaign_brief": {
+    "objective": "Introduce the Radboards KingSong S22 Pro as the ultimate electric unicycle for serious riders seeking adventure and robust performance on varied Indian terrain.",
+    "target_persona": "weekend-explorer",
+    "key_message": "Experience unmatched power and comfort for every adventure with the Radboards KingSong S22 Pro, built to conquer challenging terrain.",
+    "proof_points": [
+      {
+        "claim": "Smooth ride over rough terrain with advanced suspension.",
+        "source": "spring suspension system with 130mm of travel."
+      },
+      {
+        "claim": "Explore further on a single charge, covering long distances.",
+        "source": "Mileage: 180–200 km"
+      },
+      {
+        "claim": "Tackle steep inclines with impressive power.",
+        "source": "Gradability: 40°, Max Power: 8500W"
+      },
+      {
+        "claim": "Enhanced visibility and safety for night riding.",
+        "source": "eight-LED headlight that can be adjusted up to 15 degrees. The headlight also has a brake light and turn signals."
+      }
+    ],
+    "channels": [
+      "Instagram Reels",
+      "YouTube Shorts",
+      "Radboards.in product page"
+    ],
+    "success_metric": "Clicks to product page, engagement rate on social media posts"
+  },
+  "script": {
+    "title": "KingSong S22 Pro: Built for Adventure",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Beyond the city. Your adventure starts now.",
+        "on_screen": "Dynamic title card: Radboards. KingSong S22 Pro"
+      },
+      {
+        "beat": "problem",
+        "line": "Don't let rough terrain or long distances limit your exploration.",
+        "on_screen": "Quick cuts of challenging Indian terrain: potholes, gravel path, steep incline"
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the Radboards KingSong S22 Pro. Built for serious riders.",
+        "on_screen": "Hero shot of the KingSong S22 Pro in action, with a rider confidently gliding."
+      },
+      {
+        "beat": "proof",
+        "line": "It features 130mm adjustable suspension for any path. An 8500W peak motor handles 40-degree inclines. Reach up to 70 km/h, with up to 200 km range. An 8-LED headlight guides night rides. A comfy seat and power pads ensure comfort.",
+        "on_screen": "Visual sequence: suspension flexing, rider climbing a hill, speed/range graphic, headlight beam cutting through darkness, close-up of seat/pads."
+      },
+      {
+        "beat": "cta",
+        "line": "Ready to explore? Get your KingSong S22 Pro at radboards.in.",
+        "on_screen": "Product shot with call to action overlay: 'radboards.in'"
+      }
+    ]
+  },
+  "caption": "Ready for real adventure? The KingSong S22 Pro takes you there. 🚀 Its 130mm adjustable suspension smooths out any path. Tackle 40-degree inclines with 8500W peak power. Ride up to 70 km/h, covering up to 200 km. Night? No problem, with an 8-LED headlight. Stay comfy with the integrated seat.\n\nExplore without limits. Get yours at radboards.in!\n\n*Range, speed and charge-time figures are manufacturer claims and vary with rider weight, terrain and temperature.",
+  "hashtags": [
+    "#radboards",
+    "#kingsongs22pro",
+    "#electricunicycle",
+    "#euc",
+    "#personalmobility",
+    "#indianstreets",
+    "#weekendexplorer",
+    "#offroadride",
+    "#adventureon",
+    "#powerride",
+    "#glideanywhere",
+    "#builtforthejourney"
+  ]
+}

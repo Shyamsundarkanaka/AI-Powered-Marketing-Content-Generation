@@ -1,0 +1,95 @@
+{
+  "campaign_brief": {
+    "objective": "Drive awareness and sales for the Radboards Classic 6.5 Inch Hoverboard, highlighting its ease of use, portability, and fun features for campus and short urban commutes.",
+    "target_persona": "campus-rider",
+    "key_message": "The Classic 6.5 Hoverboard makes getting around campus fun, fast, and easy, with auto-balancing, built-in Bluetooth speakers, and a dependable 8-10 km range.",
+    "proof_points": [
+      {
+        "claim": "Easy One Step Mounting with auto-balancing for beginners and skilled riders.",
+        "source": "description"
+      },
+      {
+        "claim": "Built-in Bluetooth speakers for enjoying favourite tunes on the go.",
+        "source": "description"
+      },
+      {
+        "claim": "Covers 8–10 km per charge with a top speed of 15 km/h.",
+        "source": "specs.Range, specs.Top Speed"
+      },
+      {
+        "claim": "Weighs just 7-8kg, making it easy to carry up stairs or between classes.",
+        "source": "description"
+      },
+      {
+        "claim": "Handles 15-degree slopes with ease thanks to dual 250W motors.",
+        "source": "specs.Gradability, specs.Motor, description"
+      }
+    ],
+    "channels": [
+      "Instagram Reels",
+      "YouTube Shorts",
+      "Campus Digital Ads"
+    ],
+    "success_metric": "Increase in product page visits and direct sales conversions for the Classic 6.5 Inch Hoverboard."
+  },
+  "script": {
+    "title": "Your Campus Ride: The Radboards Classic 6.5",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Campus is huge. Walking between classes takes time.",
+        "on_screen": "CAMPUS LIFE. FAST."
+      },
+      {
+        "beat": "problem",
+        "line": "Tired legs? Wish you could glide there faster?",
+        "on_screen": "NO MORE LONG WALKS."
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the Radboards Classic 6.5 Hoverboard.",
+        "on_screen": "RADBOARDS CLASSIC 6.5."
+      },
+      {
+        "beat": "proof",
+        "line": "It's easy to ride. Auto-balancing makes one-step mounting simple.",
+        "on_screen": "ONE-STEP MOUNTING."
+      },
+      {
+        "beat": "proof",
+        "line": "Play your music on built-in Bluetooth speakers. Ride to your own beat.",
+        "on_screen": "YOUR MUSIC. YOUR RIDE."
+      },
+      {
+        "beat": "proof",
+        "line": "Go 8 to 10 km per charge. Top speeds up to 15 km/h.",
+        "on_screen": "8-10KM. 15KM/H."
+      },
+      {
+        "beat": "proof",
+        "line": "Handles 15-degree slopes. Weighs just 7 to 8 kg.",
+        "on_screen": "15° SLOPES. 7-8KG."
+      },
+      {
+        "beat": "cta",
+        "line": "Make campus commutes fun. Find your Classic 6.5 at Radboards.in.",
+        "on_screen": "RADBOARDS.IN"
+      }
+    ]
+  },
+  "caption": "Campus walks getting long? Glide faster with the Classic 6.5 Hoverboard! ✨\nAuto-balancing for easy riding. Built-in Bluetooth speakers for your tunes. 8-10 km range, 15 km/h top speed. Weighs just 7-8 kg. Perfect for campus life.\nMake every ride fun. Shop the Classic 6.5 at Radboards.in\n\nRange, speed and charge-time figures are manufacturer claims and vary with rider weight, terrain and temperature.",
+  "hashtags": [
+    "#radboards",
+    "#hoverboard",
+    "#classic65",
+    "#campuslife",
+    "#collegerides",
+    "#indiarides",
+    "#electricmobility",
+    "#rideeverywhere",
+    "#smoothglide",
+    "#bluetoothspeakers",
+    "#easyride",
+    "#personalelectricvehicle"
+  ]
+}

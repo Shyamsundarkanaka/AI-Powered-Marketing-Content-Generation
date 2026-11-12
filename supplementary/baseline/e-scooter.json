@@ -1,0 +1,76 @@
+{
+  "campaign_brief": {
+    "objective": "Position the Shockwave V1 Pro as the dependable, comfortable, and portable electric kick scooter for urban and campus commutes on real Indian streets.",
+    "target_persona": "urban-commuter",
+    "key_message": "The Shockwave V1 Pro offers a dependable, comfortable, and foldable ride, built to navigate India's urban landscape with ease, making daily commutes genuinely fun.",
+    "proof_points": [
+      {
+        "claim": "Dual suspension system handles bumpy roads, ensuring a smooth and stable ride.",
+        "source": "description"
+      },
+      {
+        "claim": "Foldable 6061 aluminum alloy frame supports up to 120 kg for easy storage and transport.",
+        "source": "description"
+      },
+      {
+        "claim": "Offers up to 30 km range on a single charge, minimizing the need for frequent recharging for daily commutes.",
+        "source": "description"
+      },
+      {
+        "claim": "Puncture-proof 8.5-inch solid tires provide better grip and smooth handling across city roads and varied terrain.",
+        "source": "description"
+      }
+    ],
+    "channels": [
+      "Instagram",
+      "YouTube",
+      "Website"
+    ],
+    "success_metric": "Increase in product page views and add-to-cart rates for Shockwave V1 Pro."
+  },
+  "script": {
+    "title": "Shockwave V1 Pro: Built for Indian Streets",
+    "beats": [
+      {
+        "beat": "hook",
+        "line": "Tired of the commute grind?",
+        "on_screen": "COMMUTE GRIND?"
+      },
+      {
+        "beat": "problem",
+        "line": "Bumpy roads, crowded lanes. Getting around is tough.",
+        "on_screen": "REAL STREETS, REAL CHALLENGES"
+      },
+      {
+        "beat": "product_reveal",
+        "line": "Meet the Shockwave V1 Pro. From Radboards.",
+        "on_screen": "SHOCKWAVE V1 PRO"
+      },
+      {
+        "beat": "proof",
+        "line": "Dual suspension handles rough roads. Puncture-proof tires grip. Go up to 30 km on one charge. (Range varies.) Folds fast, carries easily. Supports 120 kg. LED lights. Dual brakes for quick stops.",
+        "on_screen": "DUAL SUSPENSION. 30 KM RANGE. FOLDS FAST. 120 KG CAPACITY. LED LIGHTS. DUAL BRAKES."
+      },
+      {
+        "beat": "cta",
+        "line": "Ready for a smoother ride? Visit Radboards.in.",
+        "on_screen": "RADBOARDS.IN"
+      }
+    ]
+  },
+  "caption": "Navigate city streets and campus corridors with the Shockwave V1 Pro. Built for real Indian roads, its dual suspension smooths out bumps. Puncture-proof 8.5-inch tires mean no surprises. Go up to 30 km on a charge, then fold it up. Holds 120 kg. Perfect for commutes or campus. (Range varies with rider weight.) Ready for a smoother ride? Link in bio. 👇",
+  "hashtags": [
+    "#radboards",
+    "#shockwavev1pro",
+    "#electricscooter",
+    "#indiancommute",
+    "#cityride",
+    "#lastmile",
+    "#foldablescooter",
+    "#dailydrive",
+    "#streetready",
+    "#commuterlife",
+    "#getaround",
+    "#rideeverywhere"
+  ]
+}
